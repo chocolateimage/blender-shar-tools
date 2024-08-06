@@ -25,6 +25,16 @@ from classes.chunks.ShaderTextureParameterChunk import ShaderTextureParameterChu
 from classes.chunks.StaticEntityChunk import StaticEntityChunk
 from classes.chunks.StaticPhysChunk import StaticPhysChunk
 from classes.chunks.CollisionObjectChunk import CollisionObjectChunk
+from classes.chunks.InstStatEntityChunk import InstStatEntityChunk
+from classes.chunks.InstStatPhysChunk import InstStatPhysChunk
+from classes.chunks.DynaPhysChunk import DynaPhysChunk
+from classes.chunks.InstanceListChunk import InstanceListChunk
+from classes.chunks.ScenegraphChunk import ScenegraphChunk
+from classes.chunks.OldScenegraphBranchChunk import OldScenegraphBranchChunk
+from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
+from classes.chunks.OldScenegraphRootChunk import OldScenegraphRootChunk
+from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
+from classes.chunks.OldScenegraphTransformChunk import OldScenegraphTransformChunk
 
 from classes.File import File
 
@@ -34,6 +44,9 @@ import libs.mesh as MeshLib
 import libs.message as MessageLib
 import libs.path as PathLib
 import libs.collision as CollisionLib
+
+import mathutils
+import math
 
 #
 # Class
@@ -162,6 +175,8 @@ class ImportedPure3DFile():
 	
 		self.collisionCollection : bpy.types.Collection = bpy.data.collections.new("Collisions")
 
+		self.instancedCollection : bpy.types.Collection = bpy.data.collections.new("Instanced")
+
 		self.numberOfTextureChunksImported : int = 0
 
 		self.numberOfShaderChunksImported : int = 0
@@ -173,6 +188,8 @@ class ImportedPure3DFile():
 		self.numberOfStaticEntityChunksImported : int = 0
 
 		self.numberOfCollisionsImported : int = 0
+
+		self.numberOfInstancedImported : int = 0
 
 		self.numberOfUnsupportedChunksSkipped : int = 0
 
@@ -212,6 +229,15 @@ class ImportedPure3DFile():
 				if self.importPure3DFileOperator.option_import_collisions:
 					self.importStaticPhysChunk(chunk)
 
+			elif isinstance(chunk, InstStatEntityChunk):
+				self.importInstancedChunk(chunk)
+
+			elif isinstance(chunk, InstStatPhysChunk):
+				self.importInstancedChunk(chunk)
+
+			elif isinstance(chunk, DynaPhysChunk):
+				self.importInstancedChunk(chunk)
+
 			else:
 				print(f"Unsupported chunk type: { hex(chunk.identifier) }")
 
@@ -221,7 +247,7 @@ class ImportedPure3DFile():
 		# Create File Collection
 		#
 
-		if self.numberOfFenceChunksImported == 0 and self.numberOfPathChunksImported == 0 and self.numberOfStaticEntityChunksImported == 0 and self.numberOfCollisionsImported == 0:
+		if self.numberOfFenceChunksImported == 0 and self.numberOfPathChunksImported == 0 and self.numberOfStaticEntityChunksImported == 0 and self.numberOfCollisionsImported == 0 and self.numberOfInstancedImported == 0:
 			return
 
 		fileCollection = bpy.data.collections.new(self.fileName)
@@ -247,6 +273,32 @@ class ImportedPure3DFile():
 			fileCollection.children.link(self.collisionCollection)
 		else:
 			bpy.data.collections.remove(self.collisionCollection)
+
+		if self.numberOfInstancedImported > 0:
+			fileCollection.children.link(self.instancedCollection)
+		else:
+			bpy.data.collections.remove(self.instancedCollection)
+
+	def importInstancedChunk(self, chunk: Chunk):
+		instanceList: InstanceListChunk = chunk.getFirstChildOfType(InstanceListChunk)
+		meshes = {}
+		for meshChunk in chunk.getChildrenOfType(MeshChunk):
+			meshes[meshChunk.name] = MeshLib.createMesh(meshChunk)
+		scenegraph = instanceList.getFirstChildOfType(ScenegraphChunk)
+		root = scenegraph.getFirstChildOfType(OldScenegraphRootChunk)
+		rootBranch = root.getFirstChildOfType(OldScenegraphBranchChunk)
+		rootTransform = rootBranch.getFirstChildOfType(OldScenegraphTransformChunk)
+		for transform in rootTransform.getChildrenOfType(OldScenegraphTransformChunk):
+			transform: OldScenegraphTransformChunk
+			drawable: OldScenegraphDrawableChunk = transform.getFirstChildOfType(OldScenegraphDrawableChunk)
+			mesh = meshes[drawable.drawableName]
+			obj = bpy.data.objects.new(transform.name, mesh)
+			obj.matrix_world = transform.matrix.transposed()
+			obj.location = obj.location.xzy
+			obj.rotation_euler = mathutils.Euler((obj.rotation_euler.x,obj.rotation_euler.z,-obj.rotation_euler.y))
+			obj.scale = obj.scale.xzy
+			self.instancedCollection.objects.link(obj)
+		self.numberOfInstancedImported += 1
 
 	def importFenceChunk(self, chunkIndex : int, chunk : FenceChunk) -> None:
 		for childChunkIndex, childChunk in enumerate(chunk.children):

@@ -19,11 +19,11 @@ class Chunk():
 	def __init__(
 		self, 
 		identifier : int, 
-		children : list[Chunk] = []
+		children : list[Chunk] = None
 	) -> None:
 		self.identifier = identifier
 
-		self.children = children
+		self.children = [] if children is None else children
 
 	def getChildrenSize(self) -> int:
 		childrenSize = 0

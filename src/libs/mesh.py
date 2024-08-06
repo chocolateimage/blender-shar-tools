@@ -86,8 +86,11 @@ def createMesh(chunk: classes.chunks.MeshChunk.MeshChunk) -> bpy.types.Mesh:
 		for loop_index in poly.loop_indices:
 			loop = mesh.loops[loop_index]
 			vertex_index = loop.vertex_index
-			uv = total_uvs[vertex_index]
-			uvLayer.data[loop_index].uv = uv
+			if vertex_index < len(total_uvs):
+				uv = total_uvs[vertex_index]
+				uvLayer.data[loop_index].uv = uv
+			else:
+				print(mesh.name)
 	
 	
 	mesh.update()
