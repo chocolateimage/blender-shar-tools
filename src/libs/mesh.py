@@ -25,7 +25,7 @@ def createMesh(chunk: classes.chunks.MeshChunk.MeshChunk) -> bpy.types.Mesh:
 	indexoffset = 0
 	separators = [0]
 	for childChunkIndex, childChunk in enumerate(chunk.children):
-
+		amount_of_positions = 0
 		if isinstance(childChunk, classes.chunks.OldPrimitiveGroupChunk.OldPrimitiveGroupChunk):
 			if childChunk.shaderName in bpy.data.materials:
 				mesh.materials.append(bpy.data.materials[childChunk.shaderName])
@@ -35,6 +35,7 @@ def createMesh(chunk: classes.chunks.MeshChunk.MeshChunk) -> bpy.types.Mesh:
 				if isinstance(childChildChunk,classes.chunks.PositionListChunk.PositionListChunk):
 					for position in childChildChunk.positions:
 						total_positions.append((position.x,position.z,position.y))
+						amount_of_positions += 1
 				
 				elif isinstance(childChildChunk,classes.chunks.IndexListChunk.IndexListChunk):
 					if childChunk.primitiveType == childChunk.primitiveTypes["TRIANGLE_LIST"]:
@@ -70,7 +71,7 @@ def createMesh(chunk: classes.chunks.MeshChunk.MeshChunk) -> bpy.types.Mesh:
 					for uv in childChildChunk.uvs:
 						total_uvs.append((uv.x,uv.y))
 
-		indexoffset += len(total_positions)
+		indexoffset += amount_of_positions
 		separators.append(len(total_indices))
 
 	mesh.from_pydata(total_positions,[],total_indices)
@@ -86,11 +87,8 @@ def createMesh(chunk: classes.chunks.MeshChunk.MeshChunk) -> bpy.types.Mesh:
 		for loop_index in poly.loop_indices:
 			loop = mesh.loops[loop_index]
 			vertex_index = loop.vertex_index
-			if vertex_index < len(total_uvs):
-				uv = total_uvs[vertex_index]
-				uvLayer.data[loop_index].uv = uv
-			else:
-				print(mesh.name)
+			uv = total_uvs[vertex_index]
+			uvLayer.data[loop_index].uv = uv
 	
 	
 	mesh.update()
