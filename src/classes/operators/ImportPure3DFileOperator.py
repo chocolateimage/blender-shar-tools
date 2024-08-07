@@ -152,6 +152,9 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
 			if importedPure3DFile.numberOfCollisionsImported > 0:
 				messageLines.append(f"\t- Number of Collisions: { importedPure3DFile.numberOfCollisionsImported }")
 
+			if importedPure3DFile.numberOfInstancedImported > 0:
+				messageLines.append(f"\t- Number of Instanced Chunks: { importedPure3DFile.numberOfInstancedImported }")
+
 			if importedPure3DFile.numberOfUnsupportedChunksSkipped > 0:
 				messageLines.append(f"\t- Number of Unsupported Chunks: { importedPure3DFile.numberOfUnsupportedChunksSkipped }")
 
