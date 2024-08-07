@@ -72,6 +72,7 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
 	option_import_paths: bpy.props.BoolProperty(name = "Import Paths", description = "Import Path chunks from the Pure3D File(s)", default = True)
 	option_import_static_entities: bpy.props.BoolProperty(name = "Import Static Entities", description = "Import StaticEntity chunks from the Pure3D File(s)", default = True)
 	option_import_collisions: bpy.props.BoolProperty(name = "Import Collisions", description = "Import StaticPhys chunks from the Pure3D File(s)", default = True)
+	option_import_instanced: bpy.props.BoolProperty(name = "Import Instanced Chunks", description = "Import InstStatEntity, InstStatPhys and DynaPhys chunks from the Pure3D File(s)", default = True)
 
 	def draw(self, context):
 		self.layout.prop(self, "option_import_textures")
@@ -85,6 +86,8 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
 		self.layout.prop(self, "option_import_static_entities")
 
 		self.layout.prop(self, "option_import_collisions")
+
+		self.layout.prop(self, "option_import_instanced")
 
 	def execute(self, context):
 		print(self.files)
@@ -237,13 +240,16 @@ class ImportedPure3DFile():
 					self.importStaticPhysChunk(chunk)
 
 			elif isinstance(chunk, InstStatEntityChunk):
-				self.importInstancedChunk(chunk)
+				if self.importPure3DFileOperator.option_import_instanced:
+					self.importInstancedChunk(chunk)
 
 			elif isinstance(chunk, InstStatPhysChunk):
-				self.importInstancedChunk(chunk)
+				if self.importPure3DFileOperator.option_import_instanced:
+					self.importInstancedChunk(chunk)
 
 			elif isinstance(chunk, DynaPhysChunk):
-				self.importInstancedChunk(chunk)
+				if self.importPure3DFileOperator.option_import_instanced:
+					self.importInstancedChunk(chunk)
 
 			else:
 				print(f"Unsupported chunk type: { hex(chunk.identifier) }")
