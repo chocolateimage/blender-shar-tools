@@ -48,6 +48,8 @@ import libs.collision as CollisionLib
 import mathutils
 import math
 
+import utils
+
 #
 # Class
 #
@@ -193,6 +195,8 @@ class ImportedPure3DFile():
 
 		self.numberOfUnsupportedChunksSkipped : int = 0
 
+		self.collectionsToHide = []
+
 	def importChunks(self) -> None:
 		#
 		# Print
@@ -278,26 +282,53 @@ class ImportedPure3DFile():
 			fileCollection.children.link(self.instancedCollection)
 		else:
 			bpy.data.collections.remove(self.instancedCollection)
+		
+		for collection in self.collectionsToHide:
+			utils.get_layer_collection_from_collection(collection).hide_viewport = True
 
 	def importInstancedChunk(self, chunk: Chunk):
+		
+		instancedCollection = bpy.data.collections.new(chunk.name) # Not to be confused with "Instance Collection" or self.instancedCollection
+		self.instancedCollection.children.link(instancedCollection)
+
 		instanceList: InstanceListChunk = chunk.getFirstChildOfType(InstanceListChunk)
+
 		meshes = {}
+		collisions = {}
+
 		for meshChunk in chunk.getChildrenOfType(MeshChunk):
 			meshes[meshChunk.name] = MeshLib.createMesh(meshChunk)
+
+		for collisionObjectChunk in chunk.getChildrenOfType(CollisionObjectChunk):
+			collisionCollection = bpy.data.collections.new("Collisions")
+			self.collectionsToHide.append(collisionCollection)
+			instancedCollection.children.link(collisionCollection)
+
+			collisions[collisionObjectChunk.name] = CollisionLib.createCollision(collisionObjectChunk)
+			for collisionObject in collisions[collisionObjectChunk.name]:
+				collisionObject: bpy.types.Object
+				collisionCollection.objects.link(collisionObject)
+
 		scenegraph = instanceList.getFirstChildOfType(ScenegraphChunk)
 		root = scenegraph.getFirstChildOfType(OldScenegraphRootChunk)
 		rootBranch = root.getFirstChildOfType(OldScenegraphBranchChunk)
 		rootTransform = rootBranch.getFirstChildOfType(OldScenegraphTransformChunk)
+
 		for transform in rootTransform.getChildrenOfType(OldScenegraphTransformChunk):
 			transform: OldScenegraphTransformChunk
 			drawable: OldScenegraphDrawableChunk = transform.getFirstChildOfType(OldScenegraphDrawableChunk)
+
 			mesh = meshes[drawable.drawableName]
+
 			obj = bpy.data.objects.new(transform.name, mesh)
+
 			obj.matrix_world = transform.matrix.transposed()
 			obj.location = obj.location.xzy
 			obj.rotation_euler = mathutils.Euler((obj.rotation_euler.x,obj.rotation_euler.z,-obj.rotation_euler.y))
 			obj.scale = obj.scale.xzy
-			self.instancedCollection.objects.link(obj)
+
+			instancedCollection.objects.link(obj)
+		
 		self.numberOfInstancedImported += 1
 
 	def importFenceChunk(self, chunkIndex : int, chunk : FenceChunk) -> None:
