@@ -38,6 +38,16 @@ from classes.chunks.CollisionObjectAttributeChunk import CollisionObjectAttribut
 from classes.chunks.CollisionEffectChunk import CollisionEffectChunk
 from classes.chunks.CollisionAxisAlignedBoundingBoxChunk import CollisionAxisAlignedBoundingBoxChunk
 from classes.chunks.RenderStatusChunk import RenderStatusChunk
+from classes.chunks.InstanceListChunk import InstanceListChunk
+from classes.chunks.InstStatEntityChunk import InstStatEntityChunk
+from classes.chunks.InstStatPhysChunk import InstStatPhysChunk
+from classes.chunks.DynaPhysChunk import DynaPhysChunk
+from classes.chunks.OldScenegraphRootChunk import OldScenegraphRootChunk
+from classes.chunks.OldScenegraphBranchChunk import OldScenegraphBranchChunk
+from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
+from classes.chunks.OldScenegraphTransformChunk import OldScenegraphTransformChunk
+from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
+from classes.chunks.ScenegraphChunk import ScenegraphChunk
 
 from classes.ChunkRegistry import ChunkRegistry
 
@@ -114,3 +124,18 @@ defaultChunkRegistry.register(chunkIdentifiers.COLLISION_EFFECT, CollisionEffect
 defaultChunkRegistry.register(chunkIdentifiers.COLLISION_AXIS_ALIGNED_BOUNDING_BOX, CollisionAxisAlignedBoundingBoxChunk)
 
 defaultChunkRegistry.register(chunkIdentifiers.RENDER_STATUS, RenderStatusChunk)
+defaultChunkRegistry.register(chunkIdentifiers.INST_STAT_ENTITY, InstStatEntityChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.INST_STAT_PHYS, InstStatPhysChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.DYNA_PHYS, DynaPhysChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.INSTANCE_LIST, InstanceListChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.SCENEGRAPH, ScenegraphChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.OLD_SCENEGRAPH_BRANCH, OldScenegraphBranchChunk)
+defaultChunkRegistry.register(chunkIdentifiers.OLD_SCENEGRAPH_DRAWABLE, OldScenegraphDrawableChunk)
+defaultChunkRegistry.register(chunkIdentifiers.OLD_SCENEGRAPH_ROOT, OldScenegraphRootChunk)
+defaultChunkRegistry.register(chunkIdentifiers.OLD_SCENEGRAPH_SORT_ORDER, OldScenegraphSortOrderChunk)
+defaultChunkRegistry.register(chunkIdentifiers.OLD_SCENEGRAPH_TRANSFORM, OldScenegraphTransformChunk)

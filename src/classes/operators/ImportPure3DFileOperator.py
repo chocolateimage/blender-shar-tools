@@ -26,6 +26,16 @@ from classes.chunks.StaticEntityChunk import StaticEntityChunk
 from classes.chunks.StaticPhysChunk import StaticPhysChunk
 from classes.chunks.RenderStatusChunk import RenderStatusChunk
 from classes.chunks.CollisionObjectChunk import CollisionObjectChunk
+from classes.chunks.InstStatEntityChunk import InstStatEntityChunk
+from classes.chunks.InstStatPhysChunk import InstStatPhysChunk
+from classes.chunks.DynaPhysChunk import DynaPhysChunk
+from classes.chunks.InstanceListChunk import InstanceListChunk
+from classes.chunks.ScenegraphChunk import ScenegraphChunk
+from classes.chunks.OldScenegraphBranchChunk import OldScenegraphBranchChunk
+from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
+from classes.chunks.OldScenegraphRootChunk import OldScenegraphRootChunk
+from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
+from classes.chunks.OldScenegraphTransformChunk import OldScenegraphTransformChunk
 
 from classes.File import File
 
@@ -35,6 +45,11 @@ import libs.mesh as MeshLib
 import libs.message as MessageLib
 import libs.path as PathLib
 import libs.collision as CollisionLib
+
+import mathutils
+import math
+
+import utils
 
 #
 # Class
@@ -58,6 +73,7 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
 	option_import_paths: bpy.props.BoolProperty(name = "Import Paths", description = "Import Path chunks from the Pure3D File(s)", default = True)
 	option_import_static_entities: bpy.props.BoolProperty(name = "Import Static Entities", description = "Import StaticEntity chunks from the Pure3D File(s)", default = True)
 	option_import_collisions: bpy.props.BoolProperty(name = "Import Collisions", description = "Import StaticPhys chunks from the Pure3D File(s)", default = True)
+	option_import_instanced: bpy.props.BoolProperty(name = "Import Instanced Chunks", description = "Import InstStatEntity, InstStatPhys and DynaPhys chunks from the Pure3D File(s)", default = True)
 
 	def draw(self, context):
 		self.layout.prop(self, "option_import_textures")
@@ -71,6 +87,8 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
 		self.layout.prop(self, "option_import_static_entities")
 
 		self.layout.prop(self, "option_import_collisions")
+
+		self.layout.prop(self, "option_import_instanced")
 
 	def execute(self, context):
 		print(self.files)
@@ -138,6 +156,9 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
 			if importedPure3DFile.numberOfCollisionsImported > 0:
 				messageLines.append(f"\t- Number of Collisions: { importedPure3DFile.numberOfCollisionsImported }")
 
+			if importedPure3DFile.numberOfInstancedImported > 0:
+				messageLines.append(f"\t- Number of Instanced Chunks: { importedPure3DFile.numberOfInstancedImported }")
+
 			if importedPure3DFile.numberOfUnsupportedChunksSkipped > 0:
 				messageLines.append(f"\t- Number of Unsupported Chunks: { importedPure3DFile.numberOfUnsupportedChunksSkipped }")
 
@@ -193,6 +214,8 @@ class ImportedPure3DFile():
 	
 		self.collisionCollection : bpy.types.Collection = bpy.data.collections.new("Collisions")
 
+		self.instancedCollection : bpy.types.Collection = bpy.data.collections.new("Instanced")
+
 		self.numberOfTextureChunksImported : int = 0
 
 		self.numberOfShaderChunksImported : int = 0
@@ -205,9 +228,12 @@ class ImportedPure3DFile():
 
 		self.numberOfCollisionsImported : int = 0
 
+		self.numberOfInstancedImported : int = 0
+
 		self.numberOfUnsupportedChunksSkipped : int = 0
 
 		self.stickyImages = []
+		self.collectionsToHide = []
 
 	def importChunks(self) -> None:
 		#
@@ -245,6 +271,18 @@ class ImportedPure3DFile():
 				if getattr(self.importPure3DFileOperator, "option_import_collisions", True):
 					self.importStaticPhysChunk(chunk)
 
+			elif isinstance(chunk, InstStatEntityChunk):
+				if self.importPure3DFileOperator.option_import_instanced:
+					self.importInstancedChunk(chunk)
+
+			elif isinstance(chunk, InstStatPhysChunk):
+				if self.importPure3DFileOperator.option_import_instanced:
+					self.importInstancedChunk(chunk)
+
+			elif isinstance(chunk, DynaPhysChunk):
+				if self.importPure3DFileOperator.option_import_instanced:
+					self.importInstancedChunk(chunk)
+
 			else:
 				print(f"Unsupported chunk type: { hex(chunk.identifier) }")
 
@@ -254,7 +292,7 @@ class ImportedPure3DFile():
 		# Create File Collection
 		#
 
-		if self.numberOfFenceChunksImported == 0 and self.numberOfPathChunksImported == 0 and self.numberOfStaticEntityChunksImported == 0 and self.numberOfCollisionsImported == 0:
+		if self.numberOfFenceChunksImported == 0 and self.numberOfPathChunksImported == 0 and self.numberOfStaticEntityChunksImported == 0 and self.numberOfCollisionsImported == 0 and self.numberOfInstancedImported == 0:
 			return
 
 		fileCollection = bpy.data.collections.new(self.fileName)
@@ -305,6 +343,59 @@ class ImportedPure3DFile():
 			fileCollection.children.link(self.collisionCollection)
 		else:
 			bpy.data.collections.remove(self.collisionCollection)
+
+		if self.numberOfInstancedImported > 0:
+			fileCollection.children.link(self.instancedCollection)
+		else:
+			bpy.data.collections.remove(self.instancedCollection)
+		
+		for collection in self.collectionsToHide:
+			utils.get_layer_collection_from_collection(collection).hide_viewport = True
+
+	def importInstancedChunk(self, chunk: Chunk):
+		
+		instancedCollection = bpy.data.collections.new(chunk.name) # Not to be confused with "Instance Collection" or self.instancedCollection
+		self.instancedCollection.children.link(instancedCollection)
+
+		instanceList: InstanceListChunk = chunk.getFirstChildOfType(InstanceListChunk)
+
+		meshes = {}
+		collisions = {}
+
+		for meshChunk in chunk.getChildrenOfType(MeshChunk):
+			meshes[meshChunk.name] = MeshLib.createMesh(meshChunk)
+
+		for collisionObjectChunk in chunk.getChildrenOfType(CollisionObjectChunk):
+			collisionCollection = bpy.data.collections.new("Collisions")
+			self.collectionsToHide.append(collisionCollection)
+			instancedCollection.children.link(collisionCollection)
+
+			collisions[collisionObjectChunk.name] = CollisionLib.createCollision(collisionObjectChunk)
+			for collisionObject in collisions[collisionObjectChunk.name]:
+				collisionObject: bpy.types.Object
+				collisionCollection.objects.link(collisionObject)
+
+		scenegraph = instanceList.getFirstChildOfType(ScenegraphChunk)
+		root = scenegraph.getFirstChildOfType(OldScenegraphRootChunk)
+		rootBranch = root.getFirstChildOfType(OldScenegraphBranchChunk)
+		rootTransform = rootBranch.getFirstChildOfType(OldScenegraphTransformChunk)
+
+		for transform in rootTransform.getChildrenOfType(OldScenegraphTransformChunk):
+			transform: OldScenegraphTransformChunk
+			drawable: OldScenegraphDrawableChunk = transform.getFirstChildOfType(OldScenegraphDrawableChunk)
+
+			mesh = meshes[drawable.drawableName]
+
+			obj = bpy.data.objects.new(transform.name, mesh)
+
+			obj.matrix_world = transform.matrix.transposed()
+			obj.location = obj.location.xzy
+			obj.rotation_euler = mathutils.Euler((obj.rotation_euler.x,obj.rotation_euler.z,-obj.rotation_euler.y))
+			obj.scale = obj.scale.xzy
+
+			instancedCollection.objects.link(obj)
+		
+		self.numberOfInstancedImported += 1
 
 	def importFenceChunk(self, chunkIndex : int, chunk : FenceChunk) -> None:
 		for childChunkIndex, childChunk in enumerate(chunk.children):

@@ -49,7 +49,6 @@ def createMesh(chunk: classes.chunks.MeshChunk.MeshChunk) -> bpy.types.Mesh:
 					for position in childChildChunk.positions:
 						total_positions.append((position.x,position.z,position.y))
 						amount_of_positions += 1
-
 				elif isinstance(childChildChunk,classes.chunks.IndexListChunk.IndexListChunk):
 					if childChunk.primitiveType == childChunk.primitiveTypes["TRIANGLE_LIST"]:
 						for i in range(0,len(childChildChunk.indices),3):

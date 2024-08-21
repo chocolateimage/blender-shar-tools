@@ -81,14 +81,6 @@ class Pure3DBinaryWriter(BinaryWriter):
 
 		self.writeFloat(matrix[3][3])
 
-		self.writeFloat(matrix[0][0])
-
-		self.writeFloat(matrix[0][1])
-
-		self.writeFloat(matrix[0][2])
-
-		self.writeFloat(matrix[0][3])
-
 	def writePure3DString(self, value : str) -> None:
 		if len(value) > 255:
 			raise ValueError("String must be less than or equal to 255 characters.")
