@@ -36,3 +36,5 @@ class OldScenegraphBranchChunk(Chunk):
 
 	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
 		binaryWriter.writePure3DString(self.name)
+
+		binaryWriter.writeUInt32(len(self.children))

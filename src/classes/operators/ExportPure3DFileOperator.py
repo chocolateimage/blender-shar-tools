@@ -32,6 +32,14 @@ from classes.chunks.ShaderTextureParameterChunk import ShaderTextureParameterChu
 from classes.chunks.StaticEntityChunk import StaticEntityChunk
 from classes.chunks.StaticPhysChunk import StaticPhysChunk
 from classes.chunks.CollisionEffectChunk import CollisionEffectChunk
+from classes.chunks.InstStatEntityChunk import InstStatEntityChunk
+from classes.chunks.InstanceListChunk import InstanceListChunk
+from classes.chunks.ScenegraphChunk import ScenegraphChunk
+from classes.chunks.OldScenegraphRootChunk import OldScenegraphRootChunk
+from classes.chunks.OldScenegraphBranchChunk import OldScenegraphBranchChunk
+from classes.chunks.OldScenegraphTransformChunk import OldScenegraphTransformChunk
+from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
+from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
 
 from classes.properties.ShaderProperties import ShaderProperties
 
@@ -354,6 +362,71 @@ class ExportedPure3DFile():
 							]
 						)
 					)
+			elif collectionBasename == "Instanced":
+				for instancedCollection in childCollection.children:
+					alreadyExportedMeshes = {}
+					children = []
+					for obj in instancedCollection.objects:
+						mesh = obj.data
+						if mesh.name in alreadyExportedMeshes:
+							alreadyExportedMeshes[mesh.name].append(obj)
+							continue
+						alreadyExportedMeshes[mesh.name] = [obj]
+
+						for mat in mesh.materials:
+							self.exportShader(mat)
+
+						meshChunk = MeshLib.meshToChunk(mesh,obj)
+						children.append(meshChunk)
+
+					instanceList = InstanceListChunk()
+					instanceList.name = instancedCollection.name
+					for meshName in alreadyExportedMeshes:
+						scenegraph = ScenegraphChunk(name=meshName)
+						root = OldScenegraphRootChunk()
+						rootBranch = OldScenegraphBranchChunk()
+						rootBranch.name = "root"
+						rootTransform = OldScenegraphTransformChunk()
+						rootTransform.name = meshName
+						for obj in alreadyExportedMeshes[meshName]:
+							obj: bpy.types.Object
+							transform = OldScenegraphTransformChunk()
+							transform.name = obj.name
+							location, rotation, scale = obj.matrix_world.decompose()
+							location = location.xzy
+							rotation_euler: mathutils.Euler = rotation.to_euler()
+							rotation_euler = mathutils.Euler((-rotation_euler.x,-rotation_euler.z,-rotation_euler.y),"ZXY")
+							rotation = rotation_euler.to_quaternion()
+							transform.matrix = mathutils.Matrix.LocRotScale(location, rotation, scale).transposed()
+
+							drawable = OldScenegraphDrawableChunk()
+							drawable.name = meshName
+							drawable.drawableName = meshName
+							drawable.isTranslucent = 0
+
+							sortOrder = OldScenegraphSortOrderChunk(sortOrder=0.5)
+							drawable.children.append(sortOrder)
+
+							transform.children.append(drawable)
+
+							rootTransform.children.append(transform)
+
+						rootBranch.children.append(rootTransform)
+						root.children.append(rootBranch)
+						scenegraph.children.append(root)
+						instanceList.children.append(scenegraph)
+					
+					children.append(instanceList)
+
+					self.chunks.append(
+						InstStatEntityChunk(
+							children=children,
+							name=instancedCollection.name,
+							version=0,
+							hasAlpha=0
+						)
+					)
+
 
 
 		chunks = []
