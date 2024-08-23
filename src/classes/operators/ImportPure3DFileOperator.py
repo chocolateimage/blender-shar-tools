@@ -387,11 +387,19 @@ class ImportedPure3DFile():
 			mesh = meshes[drawable.drawableName]
 
 			obj = bpy.data.objects.new(transform.name, mesh)
+			location, rotation, scale = transform.matrix.transposed().decompose()
 
-			obj.matrix_world = transform.matrix.transposed()
-			obj.location = obj.location.xzy
-			obj.rotation_euler = mathutils.Euler((obj.rotation_euler.x,obj.rotation_euler.z,-obj.rotation_euler.y))
-			obj.scale = obj.scale.xzy
+			location = location.xzy
+
+			rotation_euler: mathutils.Euler = rotation.to_euler("ZXY")
+
+			rotation_euler = mathutils.Euler((-rotation_euler.x,-rotation_euler.z,-rotation_euler.y))
+
+			scale = scale.xzy
+
+			obj.location = location
+			obj.rotation_euler = rotation_euler
+			obj.scale = scale
 
 			instancedCollection.objects.link(obj)
 		
