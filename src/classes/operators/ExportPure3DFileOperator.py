@@ -348,18 +348,11 @@ class ExportedPure3DFile():
 					collisionGroups[baseName].append(obj)
 				
 				for groupName, group in collisionGroups.items():
-					collisionObject = CollisionLib.collisionsToCollisionObject(groupName, group)
+					collisionChildren = CollisionLib.collisionsToChunks(groupName, group)
 					self.chunks.append(
 						StaticPhysChunk(
 							name = groupName,
-							children = [
-								collisionObject,
-								CollisionEffectChunk( # Placeholder values
-									classType = 7,
-									phyPropID = 0,
-									soundResourceDataName = "nosound"
-								)
-							]
+							children = collisionChildren
 						)
 					)
 			elif collectionBasename == "Instanced":
@@ -368,10 +361,11 @@ class ExportedPure3DFile():
 					children = []
 					for obj in instancedCollection.objects:
 						mesh = obj.data
-						if mesh.name in alreadyExportedMeshes:
-							alreadyExportedMeshes[mesh.name].append(obj)
+						meshName = utils.get_basename(mesh.name)
+						if meshName in alreadyExportedMeshes:
+							alreadyExportedMeshes[meshName].append(obj)
 							continue
-						alreadyExportedMeshes[mesh.name] = [obj]
+						alreadyExportedMeshes[meshName] = [obj]
 
 						for mat in mesh.materials:
 							self.exportShader(mat)
@@ -380,7 +374,7 @@ class ExportedPure3DFile():
 						children.append(meshChunk)
 
 					instanceList = InstanceListChunk()
-					instanceList.name = instancedCollection.name
+					instanceList.name = utils.get_basename(instancedCollection.name)
 					for meshName in alreadyExportedMeshes:
 						scenegraph = ScenegraphChunk(name=meshName)
 						root = OldScenegraphRootChunk()

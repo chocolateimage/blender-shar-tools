@@ -13,6 +13,7 @@ from classes.chunks.CollisionCylinderChunk import CollisionCylinderChunk
 from classes.chunks.CollisionSphereChunk import CollisionSphereChunk
 from classes.chunks.CollisionObjectAttributeChunk import CollisionObjectAttributeChunk
 from classes.chunks.CollisionAxisAlignedBoundingBoxChunk import CollisionAxisAlignedBoundingBoxChunk
+from classes.chunks.CollisionEffectChunk import CollisionEffectChunk
 
 import mathutils
 import math
@@ -21,8 +22,16 @@ import math
 # Utility Functions
 #
 
-def createCollision(collisionObject: CollisionObjectChunk) -> list[bpy.types.Object]:
-	return createFromVolume(collisionObject,collisionObject.getFirstChildOfType(CollisionVolumeChunk))
+def createCollision(collisionObject: CollisionObjectChunk, collisionEffect: CollisionEffectChunk | None = None) -> list[bpy.types.Object]:
+	collisions = createFromVolume(collisionObject,collisionObject.getFirstChildOfType(CollisionVolumeChunk))
+	if len(collisions) > 0:
+		if collisionEffect != None:
+			collisionProperties = collisions[0].collisionProperties
+			collisionProperties.hasCollisionEffect = True
+			collisionProperties.collisionEffectClassType = str(collisionEffect.classType)
+			collisionProperties.collisionEffectPhyPropID = str(collisionEffect.phyPropID)
+			collisionProperties.collisionEffectSound = collisionEffect.soundResourceDataName
+	return collisions
 
 def createNewCollisionBox():
 	mesh = bpy.data.meshes.new("Collision Box")
@@ -151,6 +160,26 @@ def createFromVolume(collisionObject: CollisionObjectChunk, collisionVolume: Col
 			print("Unknown collision type " + hex(child.identifier))
 	
 	return objects
+
+def collisionsToChunks(name: str, collisions: list[bpy.types.Object]):
+	collisionObject = collisionsToCollisionObject(name, collisions)
+	collisionEffect = CollisionEffectChunk(
+		classType = 7,
+		phyPropID = 0,
+		soundResourceDataName = "nosound"
+	)
+
+	for i in collisions:
+		if i.collisionProperties and i.collisionProperties.collisionType != "" and i.collisionProperties.hasCollisionEffect:
+			collisionEffect.classType = int(i.collisionProperties.collisionEffectClassType)
+			collisionEffect.phyPropID = int(i.collisionProperties.collisionEffectPhyPropID)
+			collisionEffect.soundResourceDataName = i.collisionProperties.collisionEffectSound
+
+
+	return [
+		collisionObject,
+		collisionEffect
+	]
 
 def collisionsToCollisionObject(name: str, collisions: list[bpy.types.Object]):
 	volume = CollisionVolumeChunk(

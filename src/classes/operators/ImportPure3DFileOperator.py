@@ -26,6 +26,7 @@ from classes.chunks.StaticEntityChunk import StaticEntityChunk
 from classes.chunks.StaticPhysChunk import StaticPhysChunk
 from classes.chunks.RenderStatusChunk import RenderStatusChunk
 from classes.chunks.CollisionObjectChunk import CollisionObjectChunk
+from classes.chunks.CollisionEffectChunk import CollisionEffectChunk
 from classes.chunks.InstStatEntityChunk import InstStatEntityChunk
 from classes.chunks.InstStatPhysChunk import InstStatPhysChunk
 from classes.chunks.DynaPhysChunk import DynaPhysChunk
@@ -370,7 +371,7 @@ class ImportedPure3DFile():
 			self.collectionsToHide.append(collisionCollection)
 			instancedCollection.children.link(collisionCollection)
 
-			collisions[collisionObjectChunk.name] = CollisionLib.createCollision(collisionObjectChunk)
+			collisions[collisionObjectChunk.name] = CollisionLib.createCollision(collisionObjectChunk,chunk.getFirstChildOfType(CollisionEffectChunk))
 			for collisionObject in collisions[collisionObjectChunk.name]:
 				collisionObject: bpy.types.Object
 				collisionCollection.objects.link(collisionObject)
@@ -566,7 +567,7 @@ class ImportedPure3DFile():
 	def importStaticPhysChunk(self, chunk: StaticPhysChunk):
 		for childChunk in chunk.children:
 			if isinstance(childChunk,CollisionObjectChunk):
-				objects = CollisionLib.createCollision(childChunk)
+				objects = CollisionLib.createCollision(childChunk,chunk.getFirstChildOfType(CollisionEffectChunk))
 				for i in objects:
 					self.collisionCollection.objects.link(i)
 					self.numberOfCollisionsImported += 1
