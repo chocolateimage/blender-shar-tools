@@ -145,6 +145,8 @@ def createFromVolume(collisionObject: CollisionObjectChunk, collisionVolume: Col
 			obj.location = centerChunk.vector.xzy
 
 			objects.append(obj)
+		elif isinstance(child, CollisionAxisAlignedBoundingBoxChunk):
+			pass
 		else:
 			print("Unknown collision type " + hex(child.identifier))
 	
