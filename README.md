@@ -1,7 +1,7 @@
 # Blender SHAR Tools
 A blender addon that adds various tools for working with P3D files from The Simpsons Hit & Run. 
 
-This addon currently targets Blender 4.2.
+This addon currently targets Blender 4.2 and is based on DonutTeam's blender-shar-tools.
 
 The Pure3D classes within this repo are based very significantly upon [LuaP3DLib](https://github.com/Hampo/LuaP3DLib) and the [TypeScript Pure3D Library](https://github.com/donutteam/npm-pure3d).
 
