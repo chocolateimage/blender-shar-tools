@@ -7,6 +7,8 @@ from classes.chunks.SurfaceTypeListChunk import SurfaceTypeListChunk
 from classes.chunks.BoundingBoxChunk import BoundingBoxChunk
 from classes.chunks.BoundingSphereChunk import BoundingSphereChunk
 
+import random
+
 GROUP_SIZE = 20
 
 def clamp(v,min,max):
@@ -27,6 +29,15 @@ class Face():
 			v = v + i
 		return v / len(self.vertices)
 
+	def size(self):
+		center = self.center()
+		distance = 0
+		for i in self.vertices:
+			vertex_distance = (i - center).length
+			if vertex_distance > distance:
+				distance = vertex_distance
+		return distance
+
 	def groupLocation(self):
 		center = self.center()
 		x = math.floor(center.x / GROUP_SIZE)
@@ -37,7 +48,8 @@ class Face():
 		x, y = self.groupLocation()
 		return f"{x},{y}"
 
-	def clampTo(self,x,y):
+	def clampToGroup(self):
+		x, y = self.groupLocation()
 		xmin = x * GROUP_SIZE
 		ymin = y * GROUP_SIZE
 		xmax = (x+1) * GROUP_SIZE
@@ -51,6 +63,57 @@ class Face():
 			)))
 		return Face(vertices,self.terrainType)
 
+	def doesFit(self):
+		x, y = self.groupLocation()
+		xmin = x * GROUP_SIZE
+		ymin = y * GROUP_SIZE
+		xmax = (x+1) * GROUP_SIZE
+		ymax = (y+1) * GROUP_SIZE
+		for i in self.vertices:
+			if i.x < xmin or i.x > xmax:
+				return False
+			if i.z < ymin or i.z > ymax:
+				return False
+		return True
+
+
+	def splitOnce(self):
+		side_a = [
+			self.vertices[2],
+			self.vertices[1],
+			(self.vertices[0] + self.vertices[1]) / 2,
+		]
+		side_b = [
+			self.vertices[2],
+			self.vertices[0],
+			(self.vertices[0] + self.vertices[1]) / 2,
+		]
+		return [
+			Face(
+				vertices=side_a,
+				terrainType=self.terrainType
+			),
+			Face(
+				vertices=side_b,
+				terrainType=self.terrainType
+			)
+		]
+	
+	def splitUntilFits(self,recursion=0):
+		if recursion > 1000:
+			print("[Face.splitUntilFits] Escaped recursion!",self)
+			return [self.clampToGroup()]
+		faces = []
+		if self.doesFit():
+			faces.append(self)
+		else:
+			if self.size() < 0.1:
+				return [self.clampToGroup()]
+			for face in self.splitOnce():
+				faces.extend(face.splitUntilFits(recursion+1))
+
+		return faces
+
 @dataclass
 class Group():
 	faces: list[Face]
@@ -59,11 +122,11 @@ def convertToChunks(l: list[Face]):
 	chunks = []
 	groups = {}
 	for i in l:
-		print(i.center())
-		groupid = i.groupId()
-		if groupid not in groups:
-			groups[groupid] = Group(faces=[])
-		groups[groupid].faces.append(i.clampTo(*i.groupLocation()))
+		for face in i.splitUntilFits():
+			groupid = face.groupId()
+			if groupid not in groups:
+				groups[groupid] = Group(faces=[])
+			groups[groupid].faces.append(face)
 	print(list(groups.keys()))
 	for group in groups.values():
 		indices = []
