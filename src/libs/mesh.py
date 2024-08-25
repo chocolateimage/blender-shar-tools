@@ -28,10 +28,7 @@ import mathutils
 #
 
 def createMesh(chunk: classes.chunks.MeshChunk.MeshChunk) -> bpy.types.Mesh:
-	meshName = chunk.name
-	if not meshName.endswith("Mesh"):
-		meshName = meshName + "Mesh"
-	mesh = bpy.data.meshes.new(meshName)
+	mesh = bpy.data.meshes.new(chunk.name)
 
 	total_positions = []
 	total_indices = []
