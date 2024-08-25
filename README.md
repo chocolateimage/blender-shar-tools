@@ -6,7 +6,8 @@ This addon currently targets Blender 4.2.
 The Pure3D classes within this repo are based very significantly upon [LuaP3DLib](https://github.com/Hampo/LuaP3DLib) and the [TypeScript Pure3D Library](https://github.com/donutteam/npm-pure3d).
 
 ## Usage
-Not even close to ready yet, stay tuned?
+Not even close to ready yet, stay tuned?\
+The "main" branch is being developed on, so make sure to update the addon first before reporting an issue.
 
 ## Contributing
 We are not looking for contributions on this project at this early stage.
