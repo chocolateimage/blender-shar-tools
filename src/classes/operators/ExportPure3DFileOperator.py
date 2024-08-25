@@ -283,7 +283,7 @@ class ExportedPure3DFile():
 		))
 	
 	def exportIntersect(self):
-
+		pass
 		
 
 	def export(self):
