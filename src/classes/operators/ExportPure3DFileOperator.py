@@ -10,6 +10,7 @@ import tempfile
 import bpy
 import bpy_extras
 import mathutils
+import bmesh
 
 import utils
 
@@ -43,6 +44,10 @@ from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
 from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
 from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
 from classes.chunks.GameAttrChunks import GameAttrChunk, GameAttrIntegerParameterChunk
+from classes.chunks.IntersectChunk import IntersectChunk
+from classes.chunks.SurfaceTypeListChunk import SurfaceTypeListChunk
+from classes.chunks.BoundingBoxChunk import BoundingBoxChunk
+from classes.chunks.BoundingSphereChunk import BoundingSphereChunk
 
 from classes.properties.ShaderProperties import ShaderProperties
 
@@ -55,6 +60,7 @@ import libs.mesh as MeshLib
 import libs.message as MessageLib
 import libs.path as PathLib
 import libs.collision as CollisionLib
+import libs.intersect as IntersectLib
 
 #
 # Class
@@ -110,6 +116,8 @@ class ExportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ExportHel
 
 		exportedPure3DFile.export()
 
+		print("Finished exporting")
+
 		return {"FINISHED"}
 
 class RawExportPure3DFileOperator(bpy.types.Operator):
@@ -127,6 +135,8 @@ class RawExportPure3DFileOperator(bpy.types.Operator):
 		exportedPure3DFile = ExportedPure3DFile(self, self.filepath, context.collection)
 
 		exportedPure3DFile.export()
+
+		print("Finished exporting")
 
 		return {"FINISHED"}
 
@@ -146,6 +156,8 @@ class ExportedPure3DFile():
 		
 		self.imagesAlreadyExported = []
 		self.materialsAlreadyExported = []
+
+		self.intersectFaces = []
 
 	def exportTexture(self, image: bpy.types.Image):
 		if image.name in self.imagesAlreadyExported:
@@ -282,9 +294,29 @@ class ExportedPure3DFile():
 			hasTranslucency = mat.blend_method == "HASHED",
 		))
 	
-	def exportIntersect(self, mesh: bpy.types.Mesh):
-		pass
-		
+	def addAsInterset(self, mesh: bpy.types.Mesh):
+		if "track" not in mesh.name and "polySurfaceShape" not in mesh.name:
+			return
+		if len(mesh.materials) == 0:
+			return
+		shaderProperties: ShaderProperties = mesh.materials[0].shaderProperties
+		if shaderProperties.terrainType == "unset":
+			return
+		bm = bmesh.new()
+		bm.from_mesh(mesh)
+
+		bmesh.ops.triangulate(bm, faces=bm.faces[:])
+
+		bm.verts.ensure_lookup_table()
+		bm.edges.ensure_lookup_table()
+		bm.faces.ensure_lookup_table()
+
+		for face in bm.faces:
+			positions = []
+			for i in [0,2,1]:
+				loop = face.loops[i]
+				positions.append(loop.vert.co.xzy)
+			self.intersectFaces.append(IntersectLib.Face(positions,int(shaderProperties.terrainType)))
 
 	def export(self):
 		fileCollectionProperties = self.collection.fileCollectionProperties
@@ -347,7 +379,7 @@ class ExportedPure3DFile():
 							hasAlpha = 1
 
 					chunk = MeshLib.meshToChunk(mesh, obj)
-					self.exportIntersect(mesh)
+					self.addAsInterset(mesh)
 					self.chunks.append(StaticEntityChunk(
 						version = 0,
 						hasAlpha = hasAlpha,
@@ -473,6 +505,7 @@ class ExportedPure3DFile():
 		chunks.extend(self.textureChunks)
 		chunks.extend(self.shaderChunks)
 		chunks.extend(self.chunks)
+		chunks.extend(IntersectLib.convertToChunks(self.intersectFaces))
 		b = File.toBytes(chunks) # don't do it directly in the with context to not make a file when an error occurs
 		with open(self.filePath,"wb+") as f:
 			f.write(b)

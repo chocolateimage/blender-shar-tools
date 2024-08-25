@@ -160,8 +160,8 @@ def meshToChunk(mesh: bpy.types.Mesh, obj: bpy.types.Object) -> classes.chunks.M
 		oldPrimitiveGroups.append(oldPrimitiveGroup)
 		meshChildren.append(oldPrimitiveGroup)
 
-	boundingBoxMin = mathutils.Vector((9999,9999,9999))
-	boundingBoxMax = mathutils.Vector((-9999,-9999,-9999))
+	boundingBoxMin = mathutils.Vector((99999,99999,99999))
+	boundingBoxMax = mathutils.Vector((-99999,-99999,-99999))
 
 	for vertex in mesh.vertices:
 		if vertex.co.x < boundingBoxMin.x:

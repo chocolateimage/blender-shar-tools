@@ -52,6 +52,8 @@ from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
 from classes.chunks.PhysicsVectorChunk import PhysicsVectorChunk
 from classes.chunks.PhysicsInertiaMatrixChunk import PhysicsInertiaMatrixChunk
 from classes.chunks.GameAttrChunks import GameAttrChunk, GameAttrColourParameterChunk, GameAttrFloatParameterChunk, GameAttrIntegerParameterChunk, GameAttrMatrixParameterChunk, GameAttrVectorParameterChunk
+from classes.chunks.IntersectChunk import IntersectChunk
+from classes.chunks.SurfaceTypeListChunk import SurfaceTypeListChunk
 
 from classes.ChunkRegistry import ChunkRegistry
 
@@ -156,3 +158,7 @@ defaultChunkRegistry.register(chunkIdentifiers.GAME_ATTRIBUTE_FLOAT_PARAMETER, G
 defaultChunkRegistry.register(chunkIdentifiers.GAME_ATTRIBUTE_INTEGER_PARAMETER, GameAttrIntegerParameterChunk)
 defaultChunkRegistry.register(chunkIdentifiers.GAME_ATTRIBUTE_MATRIX_PARAMETER, GameAttrMatrixParameterChunk)
 defaultChunkRegistry.register(chunkIdentifiers.GAME_ATTRIBUTE_VECTOR_PARAMETER, GameAttrVectorParameterChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.INTERSECT, IntersectChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.SURFACE_TYPE_LIST, SurfaceTypeListChunk)
