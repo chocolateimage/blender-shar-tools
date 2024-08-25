@@ -31,8 +31,9 @@ from classes.chunks.ShaderIntegerParameterChunk import ShaderIntegerParameterChu
 from classes.chunks.ShaderTextureParameterChunk import ShaderTextureParameterChunk
 from classes.chunks.StaticEntityChunk import StaticEntityChunk
 from classes.chunks.StaticPhysChunk import StaticPhysChunk
-from classes.chunks.CollisionEffectChunk import CollisionEffectChunk
 from classes.chunks.InstStatEntityChunk import InstStatEntityChunk
+from classes.chunks.InstStatPhysChunk import InstStatPhysChunk
+from classes.chunks.DynaPhysChunk import DynaPhysChunk
 from classes.chunks.InstanceListChunk import InstanceListChunk
 from classes.chunks.ScenegraphChunk import ScenegraphChunk
 from classes.chunks.OldScenegraphRootChunk import OldScenegraphRootChunk
@@ -359,6 +360,9 @@ class ExportedPure3DFile():
 				for instancedCollection in childCollection.children:
 					alreadyExportedMeshes = {}
 					children = []
+					has_collisions = False
+					has_physics = False
+
 					for obj in instancedCollection.objects:
 						mesh = obj.data
 						meshName = utils.get_basename(mesh.name)
@@ -372,6 +376,21 @@ class ExportedPure3DFile():
 
 						meshChunk = MeshLib.meshToChunk(mesh,obj)
 						children.append(meshChunk)
+					
+
+					for instancedCollectionChild in instancedCollection.children:
+						instancedCollectionChildBasename = utils.get_basename(instancedCollectionChild.name)
+						if instancedCollectionChildBasename == "Collisions":
+							collisionGroups = {}
+							for obj in instancedCollectionChild.objects:
+								baseName = utils.get_basename(obj.name)
+								if baseName not in collisionGroups:
+									collisionGroups[baseName] = []
+								collisionGroups[baseName].append(obj)
+							
+							for groupName, group in collisionGroups.items():
+								children.extend(CollisionLib.collisionsToChunks(groupName, group))
+								has_collisions = True
 
 					instanceList = InstanceListChunk()
 					instanceList.name = utils.get_basename(instancedCollection.name)
@@ -412,8 +431,14 @@ class ExportedPure3DFile():
 					
 					children.append(instanceList)
 
+					chunkType = InstStatEntityChunk
+					if has_collisions:
+						chunkType = InstStatPhysChunk
+						if has_physics:
+							chunkType = DynaPhysChunk
+
 					self.chunks.append(
-						InstStatEntityChunk(
+						chunkType(
 							children=children,
 							name=instancedCollection.name,
 							version=0,
