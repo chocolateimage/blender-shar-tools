@@ -11,7 +11,7 @@ from classes.Pure3DBinaryWriter import Pure3DBinaryWriter
 
 import data.chunkIdentifiers as chunkIdentifiers
 
-import mathutils
+from classes.SymmetricMatrix3x3 import SymmetricMatrix3x3
 
 #
 # Class
@@ -22,36 +22,21 @@ class PhysicsInertiaMatrixChunk(Chunk):
 	def parseData(data : bytes, isLittleEndian : bool) -> list:
 		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		x = binaryReader.readPure3DVector3()
-		yy = binaryReader.readFloat()
-		yz = binaryReader.readFloat()
-		zz = binaryReader.readFloat()
+		matrix = binaryReader.readSymmetricMatrix3x3()
 
 		return [
-			x,
-			yy,
-			yz,
-			zz
+			matrix
 		]
 
 	def __init__(
 		self, 
 		identifier: int = chunkIdentifiers.PHYSICS_INERTIA_MATRIX, 
 		children : list[Chunk] = None, 
-		x: mathutils.Vector = None,
-		yy: float = 0,
-		yz: float = 0,
-		zz: float = 0
+		matrix: SymmetricMatrix3x3 = None
 	) -> None:
 		super().__init__(identifier,children)
 	
-		self.x = mathutils.Vector() if x is None else x
-		self.yy = yy
-		self.yz = yz
-		self.zz = zz
+		self.matrix = SymmetricMatrix3x3() if matrix is None else matrix
 
 	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writePure3DVector3(self.x)
-		binaryWriter.writeFloat(self.yy)
-		binaryWriter.writeFloat(self.yz)
-		binaryWriter.writeFloat(self.zz)
+		binaryWriter.writeSymmetricMatrix3x3(self.matrix)

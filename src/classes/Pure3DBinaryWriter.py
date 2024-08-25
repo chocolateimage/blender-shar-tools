@@ -9,6 +9,7 @@ import mathutils
 
 from classes.BinaryWriter import BinaryWriter
 from classes.Colour import Colour
+from classes.SymmetricMatrix3x3 import SymmetricMatrix3x3
 
 #
 # Class
@@ -80,6 +81,14 @@ class Pure3DBinaryWriter(BinaryWriter):
 		self.writeFloat(matrix[3][2])
 
 		self.writeFloat(matrix[3][3])
+
+	def writeSymmetricMatrix3x3(self, matrix: SymmetricMatrix3x3):
+		self.writeFloat(matrix.xx)
+		self.writeFloat(matrix.xy)
+		self.writeFloat(matrix.xz)
+		self.writeFloat(matrix.yy)
+		self.writeFloat(matrix.yz)
+		self.writeFloat(matrix.zz)
 
 	def writePure3DString(self, value : str) -> None:
 		if len(value) > 255:

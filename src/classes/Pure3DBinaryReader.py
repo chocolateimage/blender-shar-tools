@@ -8,6 +8,7 @@ import mathutils
 
 from classes.BinaryReader import BinaryReader
 from classes.Colour import Colour
+from classes.SymmetricMatrix3x3 import SymmetricMatrix3x3
 
 #
 # Class
@@ -78,6 +79,23 @@ class Pure3DBinaryReader(BinaryReader):
 		z = self.readFloat()
 
 		return mathutils.Vector((x, y, z))
+
+	def readSymmetricMatrix3x3(self) -> SymmetricMatrix3x3:
+		xx = self.readFloat()
+
+		xy = self.readFloat()
+
+		xz = self.readFloat()
+
+
+		yy = self.readFloat()
+
+		yz = self.readFloat()
+
+
+		zz = self.readFloat()
+
+		return SymmetricMatrix3x3(xx, xy, xz, yy, yz, zz)
 		
 	def trimNull(self, string) -> str:
 		nullIndex = string.find("\0")

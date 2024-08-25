@@ -18,8 +18,12 @@ from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
 from classes.chunks.PhysicsVectorChunk import PhysicsVectorChunk
 from classes.chunks.PhysicsInertiaMatrixChunk import PhysicsInertiaMatrixChunk
 
+from classes.SymmetricMatrix3x3 import SymmetricMatrix3x3
+
 import mathutils
 import math
+
+import numpy as np
 
 #
 # Utility Functions
@@ -167,6 +171,186 @@ def createFromVolume(collisionObject: CollisionObjectChunk, collisionVolume: Col
 	
 	return objects
 
+# Code from https://github.com/Hampo/SHARCarPhysicsObjectGenerator/blob/main/SHARCarPhysicsObjectGenerator/SHARCarPhysicsObjectGenerator/PhysicsObjectGenerator.cs
+# Converted from C# to Python using ChatGPT (i don't have the time for this)
+
+def transpose(matrix):
+    rows = len(matrix)
+    cols = len(matrix[0])
+    result = np.zeros((cols, rows))
+
+    for i in range(rows):
+        for j in range(cols):
+            result[j, i] = matrix[i, j]
+
+    return result
+
+def multiply(a, b):
+    a_rows = len(a)
+    a_cols = len(a[0])
+    b_cols = len(b[0])
+
+    result = np.zeros((a_rows, b_cols))
+
+    for i in range(a_rows):
+        for j in range(b_cols):
+            result[i, j] = sum(a[i][k] * b[k][j] for k in range(a_cols))
+
+    return result
+
+def calculate_centre_of_mass(volumes: list[CollisionVolumeChunk]):
+	total_mass = 0.0
+	weighted_sum = mathutils.Vector()
+
+	for volume in volumes:
+		if len(volume.children) == 0:
+			continue
+		vector = volume.children[0].getFirstChildOfType(CollisionVectorChunk)
+		if vector is None:
+			continue
+
+		mass = calculate_volume_mass(volume)
+		total_mass += mass
+		weighted_sum += vector.vector * mass
+
+	return weighted_sum / total_mass if total_mass > 0 else mathutils.Vector()
+
+def calculate_volume_mass(volume: CollisionVolumeChunk):
+	sphere = next((c for c in volume.children if isinstance(c, CollisionSphereChunk)), None)
+	if sphere:
+		return (4.0 / 3.0) * math.pi * (sphere.radius ** 3)
+	
+	obb = next((c for c in volume.children if isinstance(c, CollisionOrientedBoundingBoxChunk)), None)
+	if obb:
+		return 8.0 * obb.halfExtents.x * obb.halfExtents.y * obb.halfExtents.z
+	
+	cylinder = next((c for c in volume.children if isinstance(c, CollisionCylinderChunk)), None)
+	if cylinder:
+		return math.pi * (cylinder.cylinderRadius ** 2) * (cylinder.length * 2)
+	
+	return 0.0
+
+def calculate_inertia_matrix(volumes: list[CollisionVolumeChunk], centre_of_mass: mathutils.Vector):
+	inertia_matrix = SymmetricMatrix3x3()
+	total_mass = 0.0
+
+	for volume in volumes:
+		if len(volume.children) == 0:
+			continue
+		vector = volume.children[0].getFirstChildOfType(CollisionVectorChunk)
+		if vector is None:
+			continue
+
+		mass = calculate_volume_mass(volume)
+		total_mass += mass
+
+		if isinstance(volume.getFirstChildOfType(CollisionOrientedBoundingBoxChunk), CollisionOrientedBoundingBoxChunk):
+			obb = volume.getFirstChildOfType(CollisionOrientedBoundingBoxChunk)
+			ex, ey, ez = obb.halfExtents.x * 2, obb.halfExtents.y * 2, obb.halfExtents.z * 2
+			mass_factor = 1.0 / 12.0
+
+			inertia = np.array([
+				[mass_factor * (ey**2 + ez**2), 0, 0],
+				[0, mass_factor * (ex**2 + ez**2), 0],
+				[0, 0, mass_factor * (ex**2 + ey**2)]
+			])
+
+			vectors = obb.getChildrenOfType(CollisionVectorChunk)
+			if len(vectors) != 4:
+				raise ValueError("A Collision Oriented Bounding Box Chunk does not have the correct number of sub vectors.")
+
+			matrix_x = vectors[1].vector
+			matrix_y = vectors[2].vector
+			matrix_z = vectors[3].vector
+
+			rot = np.array([
+				[matrix_x.x, matrix_x.y, matrix_x.z],
+				[matrix_y.x, matrix_y.y, matrix_y.z],
+				[matrix_z.x, matrix_z.y, matrix_z.z]
+			])
+
+			rot_t = transpose(rot)
+			inertia_rotated = multiply(multiply(rot_t, inertia), rot)
+
+			local_matrix = SymmetricMatrix3x3(
+				inertia_rotated[0, 0], inertia_rotated[0, 1], inertia_rotated[0, 2],
+				inertia_rotated[1, 1], inertia_rotated[1, 2],
+				inertia_rotated[2, 2]
+			)
+
+			centre = vectors[0].vector - centre_of_mass
+			local_matrix_translated = SymmetricMatrix3x3.Translate(local_matrix, centre)
+
+			inertia_matrix += local_matrix_translated
+
+		elif isinstance(volume.getFirstChildOfType(CollisionSphereChunk), CollisionSphereChunk):
+			sphere = volume.getFirstChildOfType(CollisionSphereChunk)
+			radius = sphere.radius
+			mass_factor = 2.0 / 5.0
+
+			inertia_value = mass_factor * radius * radius
+			vectors = sphere.getChildrenOfType(CollisionVectorChunk)
+			if len(vectors) != 1:
+				raise ValueError("A Collision Sphere Chunk does not have the correct number of sub vectors.")
+
+			local_matrix = SymmetricMatrix3x3(inertia_value, 0, 0, inertia_value, 0, inertia_value)
+
+			centre = vectors[0].vector - centre_of_mass
+			local_matrix_translated = SymmetricMatrix3x3.Translate(local_matrix, centre)
+
+			inertia_matrix += local_matrix_translated
+
+		elif isinstance(volume.getFirstChildOfType(CollisionCylinderChunk), CollisionCylinderChunk):
+			cylinder = volume.getFirstChildOfType(CollisionCylinderChunk)
+			radius = cylinder.cylinderRadius
+			half_length = cylinder.length
+			mass_factor = 1.0
+
+			inertia_x = (1.0 / 12.0) * mass_factor * (3 * radius**2 + half_length**2)
+			inertia_y = (1.0 / 2.0) * mass_factor * radius**2
+			inertia_z = inertia_x
+
+			vectors = cylinder.getChildrenOfType(CollisionVectorChunk)
+			if len(vectors) != 2:
+				raise ValueError("A Collision Cylinder Chunk does not have the correct number of sub vectors.")
+
+			direction = vectors[1].vector
+
+			matrix_x = direction
+			matrix_y = direction
+			matrix_z = direction
+
+			rot = np.array([
+				[matrix_x.x, matrix_x.y, matrix_x.z],
+				[matrix_y.x, matrix_y.y, matrix_y.z],
+				[matrix_z.x, matrix_z.y, matrix_z.z]
+			])
+
+			rot_t = transpose(rot)
+			inertia_matrix_local = np.array([
+				[inertia_x, 0, 0],
+				[0, inertia_y, 0],
+				[0, 0, inertia_z]
+			])
+
+			inertia_rotated = multiply(multiply(rot_t, inertia_matrix_local), rot)
+
+			local_matrix = SymmetricMatrix3x3(
+				inertia_rotated[0, 0], inertia_rotated[0, 1], inertia_rotated[0, 2],
+				inertia_rotated[1, 1], inertia_rotated[1, 2],
+				inertia_rotated[2, 2]
+			)
+
+			centre = vectors[0].vector - centre_of_mass
+			local_matrix_translated = SymmetricMatrix3x3.Translate(local_matrix, centre)
+
+			inertia_matrix += local_matrix_translated
+
+		else:
+			raise ValueError("Unexpected chunk type encountered.")
+
+	return inertia_matrix * total_mass
+
 def collisionsToChunks(name: str, collisions: list[bpy.types.Object]):
 	collisionObject = collisionsToCollisionObject(name, collisions)
 	collisionEffect = CollisionEffectChunk(
@@ -183,6 +367,9 @@ def collisionsToChunks(name: str, collisions: list[bpy.types.Object]):
 			collisionEffect.soundResourceDataName = i.collisionProperties.collisionEffectSound
 
 			if collisionEffect.classType in [3, 4, 10]:
+				volumes = collisionObject.getFirstChildOfType(CollisionVolumeChunk).children
+				centreOfMass = calculate_centre_of_mass(volumes)
+				matrix = calculate_inertia_matrix(volumes,calculate_centre_of_mass(volumes))
 				physicsObject = PhysicsObjectChunk(
 					name = name,
 					numJoints = 0,
@@ -190,8 +377,8 @@ def collisionsToChunks(name: str, collisions: list[bpy.types.Object]):
 					volume = i.collisionProperties.physicsVolume,
 					restingSensitivity = i.collisionProperties.physicsRestingSensitivity,
 					children = [
-						PhysicsVectorChunk(),
-						PhysicsInertiaMatrixChunk()
+						PhysicsVectorChunk(vector = centreOfMass),
+						PhysicsInertiaMatrixChunk(matrix = matrix)
 					]
 				)
 
