@@ -282,7 +282,7 @@ class ExportedPure3DFile():
 			hasTranslucency = mat.blend_method == "HASHED",
 		))
 	
-	def exportIntersect(self):
+	def exportIntersect(self, mesh: bpy.types.Mesh):
 		pass
 		
 
