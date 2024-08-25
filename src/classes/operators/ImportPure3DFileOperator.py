@@ -38,6 +38,7 @@ from classes.chunks.OldScenegraphRootChunk import OldScenegraphRootChunk
 from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
 from classes.chunks.OldScenegraphTransformChunk import OldScenegraphTransformChunk
 from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
+from classes.chunks.GameAttrChunks import GameAttrChunk, GameAttrIntegerParameterChunk
 
 from classes.File import File
 
@@ -285,6 +286,9 @@ class ImportedPure3DFile():
 				if self.importPure3DFileOperator.option_import_instanced:
 					self.importInstancedChunk(chunk)
 
+			elif isinstance(chunk, GameAttrChunk):
+				self.importGameAttrChunk(chunk)
+
 			else:
 				print(f"Unsupported chunk type: { hex(chunk.identifier) }")
 
@@ -353,6 +357,14 @@ class ImportedPure3DFile():
 		
 		for collection in self.collectionsToHide:
 			utils.get_layer_collection_from_collection(collection).hide_viewport = True
+
+	def importGameAttrChunk(self, chunk: GameAttrChunk):
+		for parameter in chunk.children:
+			if parameter.parameter == "TerrainType":
+				if chunk.name not in bpy.data.materials:
+					continue
+				material = bpy.data.materials[chunk.name]
+				material.shaderProperties.terrainType = str(parameter.value)
 
 	def importInstancedChunk(self, chunk: Chunk):
 		

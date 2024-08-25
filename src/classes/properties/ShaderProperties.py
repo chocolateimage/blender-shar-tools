@@ -169,6 +169,22 @@ class ShaderProperties(bpy.types.PropertyGroup):
 		description="Texture name to be used when no image is set",
 		default=""
 	)
+	terrainType: bpy.props.EnumProperty(
+		name = "Terrain Type",
+		description="Terrain Type, used when generating intersects",
+		items = [
+			("unset","Unset",""),
+			("0","Road","Default road terrain. Also used for sidewalk"),
+			("1","Grass","Grass type terrain most everything else which isn't road or sidewalk"),
+			("2","Sand","Sand type terrain"),
+			("3","Gravel","Loose gravel type terrain"),
+			("4","Water","Water on surface type terrain"),
+			("5","Wood","Boardwalks, docks type terrain"),
+			("6","Metal","Powerplant and other structures"),
+			("7","Dirt","Dirt type terrain"),
+		],
+		default = "unset"
+	)
 
 class ShaderPropertiesPanel(bpy.types.Panel):
 	bl_label = "SHAR Shader Properties"
@@ -212,6 +228,7 @@ class ShaderPropertiesPanel(bpy.types.Panel):
 		layout.prop(mat.shaderProperties,"alphaTest")
 		layout.prop(mat.shaderProperties,"twoSided")
 		layout.prop(mat.shaderProperties,"shininess")
+		layout.prop(mat.shaderProperties,"terrainType")
 		panel_header, panel_body = layout.panel("shaderPropertiesAdvanced",default_closed=True)
 		panel_header.label(text="Advanced")
 		if panel_body != None:

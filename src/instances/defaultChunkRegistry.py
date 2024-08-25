@@ -51,6 +51,7 @@ from classes.chunks.ScenegraphChunk import ScenegraphChunk
 from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
 from classes.chunks.PhysicsVectorChunk import PhysicsVectorChunk
 from classes.chunks.PhysicsInertiaMatrixChunk import PhysicsInertiaMatrixChunk
+from classes.chunks.GameAttrChunks import GameAttrChunk, GameAttrColourParameterChunk, GameAttrFloatParameterChunk, GameAttrIntegerParameterChunk, GameAttrMatrixParameterChunk, GameAttrVectorParameterChunk
 
 from classes.ChunkRegistry import ChunkRegistry
 
@@ -148,3 +149,10 @@ defaultChunkRegistry.register(chunkIdentifiers.PHYSICS_OBJECT, PhysicsObjectChun
 defaultChunkRegistry.register(chunkIdentifiers.PHYSICS_VECTOR, PhysicsVectorChunk)
 
 defaultChunkRegistry.register(chunkIdentifiers.PHYSICS_INERTIA_MATRIX, PhysicsInertiaMatrixChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.GAME_ATTR, GameAttrChunk)
+defaultChunkRegistry.register(chunkIdentifiers.GAME_ATTRIBUTE_COLOUR_PARAMETER, GameAttrColourParameterChunk)
+defaultChunkRegistry.register(chunkIdentifiers.GAME_ATTRIBUTE_FLOAT_PARAMETER, GameAttrFloatParameterChunk)
+defaultChunkRegistry.register(chunkIdentifiers.GAME_ATTRIBUTE_INTEGER_PARAMETER, GameAttrIntegerParameterChunk)
+defaultChunkRegistry.register(chunkIdentifiers.GAME_ATTRIBUTE_MATRIX_PARAMETER, GameAttrMatrixParameterChunk)
+defaultChunkRegistry.register(chunkIdentifiers.GAME_ATTRIBUTE_VECTOR_PARAMETER, GameAttrVectorParameterChunk)

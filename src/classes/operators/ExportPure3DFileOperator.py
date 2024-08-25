@@ -42,6 +42,7 @@ from classes.chunks.OldScenegraphTransformChunk import OldScenegraphTransformChu
 from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
 from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
 from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
+from classes.chunks.GameAttrChunks import GameAttrChunk, GameAttrIntegerParameterChunk
 
 from classes.properties.ShaderProperties import ShaderProperties
 
@@ -262,6 +263,16 @@ class ExportedPure3DFile():
 	
 		params.append(ShaderColourParameterChunk(parameter="CBVC", colour=Colour(255,255,255,255)))
 
+		if shaderProperties.terrainType != "unset":
+			self.chunks.append(GameAttrChunk(
+				name = mat.name,
+				children = [
+					GameAttrIntegerParameterChunk(
+						parameter="TerrainType",
+						value=int(shaderProperties.terrainType)
+					)
+				]
+			))
 
 		self.shaderChunks.append(ShaderChunk(
 			children = params,
@@ -270,6 +281,9 @@ class ExportedPure3DFile():
 			pddiShaderName = shaderProperties.pddiShader,
 			hasTranslucency = mat.blend_method == "HASHED",
 		))
+	
+	def exportIntersect(self):
+
 		
 
 	def export(self):
@@ -333,6 +347,7 @@ class ExportedPure3DFile():
 							hasAlpha = 1
 
 					chunk = MeshLib.meshToChunk(mesh, obj)
+					self.exportIntersect(mesh)
 					self.chunks.append(StaticEntityChunk(
 						version = 0,
 						hasAlpha = hasAlpha,
