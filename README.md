@@ -10,9 +10,7 @@ Not even close to ready yet, stay tuned?\
 The "main" branch is being developed on, so make sure to update the addon first before reporting an issue.
 
 ## Contributing
-We are not looking for contributions on this project at this early stage.
-
-We will update this section when we are ready for contributions.
+This fork is ready to be contributed on, I myself don't know if you can make PRs to forks but you can try!
 
 ## License
 [MIT](https://github.com/donutteam/blender-shar-tools/blob/main/LICENSE.md)
