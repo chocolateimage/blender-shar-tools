@@ -48,6 +48,9 @@ from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChu
 from classes.chunks.OldScenegraphTransformChunk import OldScenegraphTransformChunk
 from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
 from classes.chunks.ScenegraphChunk import ScenegraphChunk
+from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
+from classes.chunks.PhysicsVectorChunk import PhysicsVectorChunk
+from classes.chunks.PhysicsInertiaMatrixChunk import PhysicsInertiaMatrixChunk
 
 from classes.ChunkRegistry import ChunkRegistry
 
@@ -139,3 +142,9 @@ defaultChunkRegistry.register(chunkIdentifiers.OLD_SCENEGRAPH_DRAWABLE, OldScene
 defaultChunkRegistry.register(chunkIdentifiers.OLD_SCENEGRAPH_ROOT, OldScenegraphRootChunk)
 defaultChunkRegistry.register(chunkIdentifiers.OLD_SCENEGRAPH_SORT_ORDER, OldScenegraphSortOrderChunk)
 defaultChunkRegistry.register(chunkIdentifiers.OLD_SCENEGRAPH_TRANSFORM, OldScenegraphTransformChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.PHYSICS_OBJECT, PhysicsObjectChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.PHYSICS_VECTOR, PhysicsVectorChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.PHYSICS_INERTIA_MATRIX, PhysicsInertiaMatrixChunk)

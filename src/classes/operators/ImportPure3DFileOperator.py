@@ -37,6 +37,7 @@ from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
 from classes.chunks.OldScenegraphRootChunk import OldScenegraphRootChunk
 from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
 from classes.chunks.OldScenegraphTransformChunk import OldScenegraphTransformChunk
+from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
 
 from classes.File import File
 
@@ -371,7 +372,7 @@ class ImportedPure3DFile():
 			self.collectionsToHide.append(collisionCollection)
 			instancedCollection.children.link(collisionCollection)
 
-			collisions[collisionObjectChunk.name] = CollisionLib.createCollision(collisionObjectChunk,chunk.getFirstChildOfType(CollisionEffectChunk))
+			collisions[collisionObjectChunk.name] = CollisionLib.createCollision(collisionObjectChunk,chunk.getFirstChildOfType(CollisionEffectChunk),chunk.getFirstChildOfType(PhysicsObjectChunk))
 			for collisionObject in collisions[collisionObjectChunk.name]:
 				collisionObject: bpy.types.Object
 				collisionCollection.objects.link(collisionObject)

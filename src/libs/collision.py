@@ -14,6 +14,9 @@ from classes.chunks.CollisionSphereChunk import CollisionSphereChunk
 from classes.chunks.CollisionObjectAttributeChunk import CollisionObjectAttributeChunk
 from classes.chunks.CollisionAxisAlignedBoundingBoxChunk import CollisionAxisAlignedBoundingBoxChunk
 from classes.chunks.CollisionEffectChunk import CollisionEffectChunk
+from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
+from classes.chunks.PhysicsVectorChunk import PhysicsVectorChunk
+from classes.chunks.PhysicsInertiaMatrixChunk import PhysicsInertiaMatrixChunk
 
 import mathutils
 import math
@@ -22,7 +25,7 @@ import math
 # Utility Functions
 #
 
-def createCollision(collisionObject: CollisionObjectChunk, collisionEffect: CollisionEffectChunk | None = None) -> list[bpy.types.Object]:
+def createCollision(collisionObject: CollisionObjectChunk, collisionEffect: CollisionEffectChunk | None = None, physicsObject: PhysicsObjectChunk | None = None) -> list[bpy.types.Object]:
 	collisions = createFromVolume(collisionObject,collisionObject.getFirstChildOfType(CollisionVolumeChunk))
 	if len(collisions) > 0:
 		if collisionEffect != None:
@@ -31,6 +34,9 @@ def createCollision(collisionObject: CollisionObjectChunk, collisionEffect: Coll
 			collisionProperties.collisionEffectClassType = str(collisionEffect.classType)
 			collisionProperties.collisionEffectPhyPropID = str(collisionEffect.phyPropID)
 			collisionProperties.collisionEffectSound = collisionEffect.soundResourceDataName
+			if physicsObject != None:
+				collisionProperties.physicsRestingSensitivity = physicsObject.restingSensitivity
+				collisionProperties.physicsVolume = physicsObject.volume
 	return collisions
 
 def createNewCollisionBox():
@@ -168,6 +174,7 @@ def collisionsToChunks(name: str, collisions: list[bpy.types.Object]):
 		phyPropID = 0,
 		soundResourceDataName = "nosound"
 	)
+	physicsObject = None
 
 	for i in collisions:
 		if i.collisionProperties and i.collisionProperties.collisionType != "" and i.collisionProperties.hasCollisionEffect:
@@ -175,11 +182,27 @@ def collisionsToChunks(name: str, collisions: list[bpy.types.Object]):
 			collisionEffect.phyPropID = int(i.collisionProperties.collisionEffectPhyPropID)
 			collisionEffect.soundResourceDataName = i.collisionProperties.collisionEffectSound
 
+			if collisionEffect.classType in [3, 4, 10]:
+				physicsObject = PhysicsObjectChunk(
+					name = name,
+					numJoints = 0,
+					version = 1,
+					volume = i.collisionProperties.physicsVolume,
+					restingSensitivity = i.collisionProperties.physicsRestingSensitivity,
+					children = [
+						PhysicsVectorChunk(),
+						PhysicsInertiaMatrixChunk()
+					]
+				)
 
-	return [
+
+	chunks = [
 		collisionObject,
 		collisionEffect
 	]
+	if physicsObject != None:
+		chunks.insert(0,physicsObject)
+	return chunks
 
 def collisionsToCollisionObject(name: str, collisions: list[bpy.types.Object]):
 	volume = CollisionVolumeChunk(

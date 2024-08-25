@@ -177,6 +177,14 @@ class CollisionProperties(bpy.types.PropertyGroup):
 		name = "Sound",
 		default = "nosound"
 	)
+	physicsRestingSensitivity: bpy.props.FloatProperty(
+		name = "Resting Sensitivity",
+		default = 1
+	)
+	physicsVolume: bpy.props.FloatProperty(
+		name = "Volume",
+		default = 1
+	)
 
 class CollisionPropertiesPanel(bpy.types.Panel):
 	bl_idname = "OBJECT_PT_shar_collision_properties"
@@ -219,6 +227,9 @@ class CollisionPropertiesPanel(bpy.types.Panel):
 				layout.prop(original_object.collisionProperties,"collisionEffectClassType")
 				layout.prop(original_object.collisionProperties,"collisionEffectPhyPropID")
 				layout.prop(original_object.collisionProperties,"collisionEffectSound")
+				if int(original_object.collisionProperties.collisionEffectClassType) in [3, 4, 10]:
+					layout.prop(original_object.collisionProperties,"physicsRestingSensitivity")
+					layout.prop(original_object.collisionProperties,"physicsVolume")
 				layout.label(text="Stored in object " + original_object.name)
 			elif len(original_objects) > 1:
 				layout.label(text="Multiple objects with collision effect! Only one per group allowed.",icon="ERROR")

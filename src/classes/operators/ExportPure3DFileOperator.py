@@ -41,6 +41,7 @@ from classes.chunks.OldScenegraphBranchChunk import OldScenegraphBranchChunk
 from classes.chunks.OldScenegraphTransformChunk import OldScenegraphTransformChunk
 from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
 from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
+from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
 
 from classes.properties.ShaderProperties import ShaderProperties
 
@@ -389,8 +390,13 @@ class ExportedPure3DFile():
 								collisionGroups[baseName].append(obj)
 							
 							for groupName, group in collisionGroups.items():
-								children.extend(CollisionLib.collisionsToChunks(groupName, group))
+								childrenToAdd = CollisionLib.collisionsToChunks(groupName, group)
+								children.extend(childrenToAdd)
 								has_collisions = True
+								for c in childrenToAdd:
+									if isinstance(c, PhysicsObjectChunk):
+										has_physics = True
+								
 
 					instanceList = InstanceListChunk()
 					instanceList.name = utils.get_basename(instancedCollection.name)
