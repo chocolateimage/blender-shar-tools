@@ -7,9 +7,11 @@ from classes.chunks.SurfaceTypeListChunk import SurfaceTypeListChunk
 from classes.chunks.BoundingBoxChunk import BoundingBoxChunk
 from classes.chunks.BoundingSphereChunk import BoundingSphereChunk
 
-import random
+import bpy
+import bmesh
 
 GROUP_SIZE = 20
+INTERSECT_DEBUG = False
 
 def clamp(v,min,max):
 	if v < min:
@@ -23,111 +25,66 @@ class Face():
 	vertices: list[mathutils.Vector]
 	terrainType: int
 
-	def center(self) -> mathutils.Vector:
-		v = mathutils.Vector()
-		for i in self.vertices:
-			v = v + i
-		return v / len(self.vertices)
-
-	def size(self):
-		center = self.center()
-		distance = 0
-		for i in self.vertices:
-			vertex_distance = (i - center).length
-			if vertex_distance > distance:
-				distance = vertex_distance
-		return distance
-
-	def groupLocation(self):
-		center = self.center()
-		x = math.floor(center.x / GROUP_SIZE)
-		y = math.floor(center.z / GROUP_SIZE)
-		return (x,y)
-
-	def groupId(self):
-		x, y = self.groupLocation()
-		return f"{x},{y}"
-
-	def clampToGroup(self):
-		x, y = self.groupLocation()
-		xmin = x * GROUP_SIZE
-		ymin = y * GROUP_SIZE
-		xmax = (x+1) * GROUP_SIZE
-		ymax = (y+1) * GROUP_SIZE
-		vertices = []
-		for i in self.vertices:
-			vertices.append(mathutils.Vector((
-				clamp(i.x,xmin,xmax),
-				i.y,
-				clamp(i.z,ymin,ymax),
-			)))
-		return Face(vertices,self.terrainType)
-
-	def doesFit(self):
-		x, y = self.groupLocation()
-		xmin = x * GROUP_SIZE
-		ymin = y * GROUP_SIZE
-		xmax = (x+1) * GROUP_SIZE
-		ymax = (y+1) * GROUP_SIZE
-		for i in self.vertices:
-			if i.x < xmin or i.x > xmax:
-				return False
-			if i.z < ymin or i.z > ymax:
-				return False
-		return True
-
-
-	def splitOnce(self):
-		side_a = [
-			self.vertices[2],
-			self.vertices[1],
-			(self.vertices[0] + self.vertices[1]) / 2,
-		]
-		side_b = [
-			self.vertices[2],
-			self.vertices[0],
-			(self.vertices[0] + self.vertices[1]) / 2,
-		]
-		return [
-			Face(
-				vertices=side_a,
-				terrainType=self.terrainType
-			),
-			Face(
-				vertices=side_b,
-				terrainType=self.terrainType
-			)
-		]
-	
-	def splitUntilFits(self,recursion=0):
-		if recursion > 1000:
-			print("[Face.splitUntilFits] Escaped recursion!",self)
-			return [self.clampToGroup()]
-		faces = []
-		if self.doesFit():
-			faces.append(self)
-		else:
-			if self.size() < 0.1:
-				return [self.clampToGroup()]
-			for face in self.splitOnce():
-				faces.extend(face.splitUntilFits(recursion+1))
-
-		return faces
-
-@dataclass
-class Group():
-	faces: list[Face]
-
 def convertToChunks(l: list[Face]):
-	chunks = []
-	groups = {}
+	bm = bmesh.new()
+	
+	x_from = math.inf
+	x_to = -math.inf
+
+	z_from = math.inf
+	z_to = -math.inf
+
 	for i in l:
-		for face in i.splitUntilFits():
-			groupid = face.groupId()
-			if groupid not in groups:
-				groups[groupid] = Group(faces=[])
-			groups[groupid].faces.append(face)
-	print(list(groups.keys()))
+		verts = []
+		for vertex in i.vertices:
+			if vertex.x < x_from:
+				x_from = vertex.x
+			if vertex.z < z_from:
+				z_from = vertex.z
+
+			if vertex.x > x_to:
+				x_to = vertex.x
+			if vertex.z > z_to:
+				z_to = vertex.z
+			verts.append(bm.verts.new(vertex))
+		bmface: bmesh.types.BMFace = bm.faces.new(verts)
+		bmface.material_index = i.terrainType
+	
+	# Align from/to for range to 20ers
+	x_from = int(x_from / GROUP_SIZE) * GROUP_SIZE - GROUP_SIZE
+	x_to = int(x_to / GROUP_SIZE) * GROUP_SIZE + GROUP_SIZE
+
+	z_from = int(z_from / GROUP_SIZE) * GROUP_SIZE - GROUP_SIZE
+	z_to = int(z_to / GROUP_SIZE) * GROUP_SIZE + GROUP_SIZE
+
+	# https://blender.stackexchange.com/a/3629
+	for i in range(x_from, x_to, GROUP_SIZE):
+		ret = bmesh.ops.bisect_plane(bm, geom=bm.verts[:]+bm.edges[:]+bm.faces[:], plane_co=(i,0,0), plane_no=(-1,0,0))
+		bmesh.ops.split_edges(bm, edges=[e for e in ret["geom_cut"] if isinstance(e, bmesh.types.BMEdge)])
+
+	for i in range(z_from, z_to, GROUP_SIZE):
+		ret = bmesh.ops.bisect_plane(bm, geom=bm.verts[:]+bm.edges[:]+bm.faces[:], plane_co=(0,0,i), plane_no=(0,0,1))
+		bmesh.ops.split_edges(bm, edges=[e for e in ret["geom_cut"] if isinstance(e, bmesh.types.BMEdge)])
+
+	bmesh.ops.triangulate(bm, faces=bm.faces[:])
+
+	groups = {}
+
+	for face in bm.faces:
+		center = face.calc_center_median()
+		groupid = ",".join([
+			str(math.floor(i / GROUP_SIZE))
+			for
+			i
+			in
+			[center.x,center.z]
+		])
+		if groupid not in groups:
+			groups[groupid] = [face]
+		else:
+			groups[groupid].append(face)
+
+	chunks = []
 	for group in groups.values():
 		indices = []
 		positions = []
@@ -136,33 +93,33 @@ def convertToChunks(l: list[Face]):
 		boundingBoxMin = mathutils.Vector((99999,99999,99999))
 		boundingBoxMax = mathutils.Vector((-99999,-99999,-99999))
 
-		for face in group.faces:
-			face: Face
-			for i in face.vertices:
-				positions.append(i)
+		for face in group:
+			face: bmesh.types.BMFace
+			for i in face.verts:
+				co = i.co.xyz
+				positions.append(co)
 				indices.append(len(positions) - 1)
 
-				if i.x < boundingBoxMin.x:
-					boundingBoxMin.x = i.x
-				if i.y < boundingBoxMin.y:
-					boundingBoxMin.y = i.y
-				if i.z < boundingBoxMin.z:
-					boundingBoxMin.z = i.z
+				if co.x < boundingBoxMin.x:
+					boundingBoxMin.x = co.x
+				if co.y < boundingBoxMin.y:
+					boundingBoxMin.y = co.y
+				if co.z < boundingBoxMin.z:
+					boundingBoxMin.z = co.z
 
-				if i.x > boundingBoxMax.x:
-					boundingBoxMax.x = i.x
-				if i.y > boundingBoxMax.y:
-					boundingBoxMax.y = i.y
-				if i.z > boundingBoxMax.z:
-					boundingBoxMax.z = i.z
+				if co.x > boundingBoxMax.x:
+					boundingBoxMax.x = co.x
+				if co.y > boundingBoxMax.y:
+					boundingBoxMax.y = co.y
+				if co.z > boundingBoxMax.z:
+					boundingBoxMax.z = co.z
 
-			a = face.vertices[0]
-			b = face.vertices[1]
-			c = face.vertices[2]
-			normal = ((b-a).cross(c-a)).normalized()
-			normals.append(mathutils.Vector((0,1,0)) if normal.length == 0 else normal)
+			normal = face.normal.xyz
+			if normal.y < 0:
+				normal.y = -normal.y
+			normals.append(normal)
 
-			surfaceTypes.append(face.terrainType)
+			surfaceTypes.append(face.material_index)
 		
 		center = (boundingBoxMax + boundingBoxMin) / 2
 		radius = 0
@@ -188,4 +145,14 @@ def convertToChunks(l: list[Face]):
 			]
 		)
 		chunks.append(chunk)
+	
+	if INTERSECT_DEBUG:
+		ivm = bpy.data.meshes.new("IntersectVisualizationMesh")
+		bm.to_mesh(ivm)
+
+		ivo = bpy.data.objects.new("IntersectVisualizationObject",ivm)
+		bpy.context.scene.collection.objects.link(ivo)
+
+	bm.free()
+
 	return chunks
