@@ -16,50 +16,50 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class PhysicsObjectChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		name = binaryReader.readPure3DString()
-		version = binaryReader.readUInt32()
-		materialName = binaryReader.readPure3DString()
-		numJoints = binaryReader.readUInt32()
-		volume = binaryReader.readFloat()
-		restingSensitivity = binaryReader.readFloat()
+        name = binaryReader.readPure3DString()
+        version = binaryReader.readUInt32()
+        materialName = binaryReader.readPure3DString()
+        numJoints = binaryReader.readUInt32()
+        volume = binaryReader.readFloat()
+        restingSensitivity = binaryReader.readFloat()
 
-		return [
-			name,
-			version,
-			materialName,
-			numJoints,
-			volume,
-			restingSensitivity
-		]
+        return [
+            name,
+            version,
+            materialName,
+            numJoints,
+            volume,
+            restingSensitivity
+        ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.PHYSICS_OBJECT, 
-		children : list[Chunk] = None, 
-		name: str = "",
-		version: int = 1,
-		materialName: str = "",
-		numJoints: int = 0,
-		volume: float = 1,
-		restingSensitivity: float = 1
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.name = name
-		self.version = version
-		self.materialName = materialName
-		self.numJoints = numJoints
-		self.volume = volume
-		self.restingSensitivity = restingSensitivity
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.PHYSICS_OBJECT, 
+        children : list[Chunk] = None, 
+        name: str = "",
+        version: int = 1,
+        materialName: str = "",
+        numJoints: int = 0,
+        volume: float = 1,
+        restingSensitivity: float = 1
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.name = name
+        self.version = version
+        self.materialName = materialName
+        self.numJoints = numJoints
+        self.volume = volume
+        self.restingSensitivity = restingSensitivity
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writePure3DString(self.name)
-		binaryWriter.writeUInt32(self.version)
-		binaryWriter.writePure3DString(self.materialName)
-		binaryWriter.writeUInt32(self.numJoints)
-		binaryWriter.writeFloat(self.volume)
-		binaryWriter.writeFloat(self.restingSensitivity)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writePure3DString(self.name)
+        binaryWriter.writeUInt32(self.version)
+        binaryWriter.writePure3DString(self.materialName)
+        binaryWriter.writeUInt32(self.numJoints)
+        binaryWriter.writeFloat(self.volume)
+        binaryWriter.writeFloat(self.restingSensitivity)

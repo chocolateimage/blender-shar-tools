@@ -17,27 +17,27 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class ShaderColourParameterChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		parameter = binaryReader.readPure3DFourCharacterCode()
-		colour = binaryReader.readPure3DColour()
+        parameter = binaryReader.readPure3DFourCharacterCode()
+        colour = binaryReader.readPure3DColour()
 
-		return [ parameter, colour ]
+        return [ parameter, colour ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.SHADER_COLOUR_PARAMETER, 
-		children : list[Chunk] = None, 
-		parameter: str = "", 
-		colour: Colour = None
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.parameter = parameter
-		self.colour = Colour(0, 0, 0, 255) if colour is None else colour
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.SHADER_COLOUR_PARAMETER, 
+        children : list[Chunk] = None, 
+        parameter: str = "", 
+        colour: Colour = None
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.parameter = parameter
+        self.colour = Colour(0, 0, 0, 255) if colour is None else colour
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writePure3DFourCharacterCode(self.parameter)
-		binaryWriter.writePure3DColour(self.colour)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writePure3DFourCharacterCode(self.parameter)
+        binaryWriter.writePure3DColour(self.colour)

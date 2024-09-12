@@ -16,31 +16,31 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class HistoryChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-		
-		numberOfLines = binaryReader.readUInt16()
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+        
+        numberOfLines = binaryReader.readUInt16()
 
-		lines : list[str] = []
+        lines : list[str] = []
 
-		for i in range(numberOfLines):
-			lines.append(binaryReader.readPure3DString())
+        for i in range(numberOfLines):
+            lines.append(binaryReader.readPure3DString())
 
-		return [ lines ]
+        return [ lines ]
 
-	def __init__(
-		self, 
-		identifier : int = chunkIdentifiers.HISTORY, 
-		children : list[Chunk] = None, 
-		lines : list[str] = None
-	) -> None:
-		super().__init__(chunkIdentifiers.HISTORY)
+    def __init__(
+        self, 
+        identifier : int = chunkIdentifiers.HISTORY, 
+        children : list[Chunk] = None, 
+        lines : list[str] = None
+    ) -> None:
+        super().__init__(chunkIdentifiers.HISTORY)
 
-		self.lines : list[str] = [] if lines is None else lines
+        self.lines : list[str] = [] if lines is None else lines
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeUInt16(len(self.lines))
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeUInt16(len(self.lines))
 
-		for line in self.lines:
-			binaryWriter.writePure3DString(line)
+        for line in self.lines:
+            binaryWriter.writePure3DString(line)

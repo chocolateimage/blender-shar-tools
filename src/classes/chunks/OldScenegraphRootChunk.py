@@ -16,9 +16,9 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class OldScenegraphRootChunk(Chunk):
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.OLD_SCENEGRAPH_ROOT, 
-		children: list[Chunk] = None,
-	) -> None:
-		super().__init__(identifier, children)
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.OLD_SCENEGRAPH_ROOT, 
+        children: list[Chunk] = None,
+    ) -> None:
+        super().__init__(identifier, children)

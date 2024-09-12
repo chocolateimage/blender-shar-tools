@@ -16,23 +16,23 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class VertexShaderChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		vertexShaderName = binaryReader.readPure3DString()
-		
-		return [ vertexShaderName ]
+        vertexShaderName = binaryReader.readPure3DString()
+        
+        return [ vertexShaderName ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.VERTEX_SHADER, 
-		children: list[Chunk] = None,
-		vertexShaderName: str = ""
-	) -> None:
-		super().__init__(identifier, children)
-	
-		self.vertexShaderName = vertexShaderName
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.VERTEX_SHADER, 
+        children: list[Chunk] = None,
+        vertexShaderName: str = ""
+    ) -> None:
+        super().__init__(identifier, children)
+    
+        self.vertexShaderName = vertexShaderName
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writePure3DString(self.vertexShaderName)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writePure3DString(self.vertexShaderName)

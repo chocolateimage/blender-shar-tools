@@ -18,28 +18,28 @@ import mathutils
 #
 
 class BoundingBoxChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		low = binaryReader.readPure3DVector3()
-		high = binaryReader.readPure3DVector3()
-		
-		return [ low, high ]
+        low = binaryReader.readPure3DVector3()
+        high = binaryReader.readPure3DVector3()
+        
+        return [ low, high ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.BOUNDING_BOX, 
-		children: list[Chunk] = None,
-		low: mathutils.Vector = None,
-		high: mathutils.Vector = None,
-	) -> None:
-		super().__init__(identifier, children)
-	
-		self.low = mathutils.Vector() if low is None else low
-		self.high = mathutils.Vector() if high is None else high
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.BOUNDING_BOX, 
+        children: list[Chunk] = None,
+        low: mathutils.Vector = None,
+        high: mathutils.Vector = None,
+    ) -> None:
+        super().__init__(identifier, children)
+    
+        self.low = mathutils.Vector() if low is None else low
+        self.high = mathutils.Vector() if high is None else high
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writePure3DVector3(self.low)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writePure3DVector3(self.low)
 
-		binaryWriter.writePure3DVector3(self.high)
+        binaryWriter.writePure3DVector3(self.high)

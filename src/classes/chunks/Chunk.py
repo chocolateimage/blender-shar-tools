@@ -12,82 +12,82 @@ from classes.Pure3DBinaryWriter import Pure3DBinaryWriter
 #
 
 class Chunk():
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool = True) -> list:
-		return []
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool = True) -> list:
+        return []
 
-	def __init__(
-		self, 
-		identifier : int, 
-		children : list[Chunk] = None
-	) -> None:
-		self.identifier = identifier
+    def __init__(
+        self, 
+        identifier : int, 
+        children : list[Chunk] = None
+    ) -> None:
+        self.identifier = identifier
 
-		self.children = [] if children is None else children
+        self.children = [] if children is None else children
 
-	def getChildrenSize(self) -> int:
-		childrenSize = 0
+    def getChildrenSize(self) -> int:
+        childrenSize = 0
 
-		for child in self.children:
-			childrenSize += child.getEntireSize()
+        for child in self.children:
+            childrenSize += child.getEntireSize()
 
-		return childrenSize
+        return childrenSize
 
-	def getDataSize(self) -> int:
-		binaryWriter = Pure3DBinaryWriter()
+    def getDataSize(self) -> int:
+        binaryWriter = Pure3DBinaryWriter()
 
-		self.writeData(binaryWriter)
+        self.writeData(binaryWriter)
 
-		# HACK: Feels kind of hacky, idk, I feel like it should get the length of 
-		# 	the binaryWriter's buffer minus the extra allocated space
-		#	this also feels like it may cause problems when writing files...
-		return binaryWriter.getPosition()
+        # HACK: Feels kind of hacky, idk, I feel like it should get the length of 
+        #     the binaryWriter's buffer minus the extra allocated space
+        #    this also feels like it may cause problems when writing files...
+        return binaryWriter.getPosition()
 
-	def getEntireSize(self) -> int:
-		return 12 + self.getDataSize() + self.getChildrenSize()
+    def getEntireSize(self) -> int:
+        return 12 + self.getDataSize() + self.getChildrenSize()
 
-	def write(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeUInt32(self.identifier)
+    def write(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeUInt32(self.identifier)
 
-		dynamicFieldsPosition = binaryWriter.getPosition()
+        dynamicFieldsPosition = binaryWriter.getPosition()
 
-		binaryWriter.writeUInt32(0) # Placeholder for dataSize
+        binaryWriter.writeUInt32(0) # Placeholder for dataSize
 
-		binaryWriter.writeUInt32(0) # Placeholder for entireSize
+        binaryWriter.writeUInt32(0) # Placeholder for entireSize
 
-		beforeDataSize = binaryWriter.getPosition()
-		self.writeData(binaryWriter)
-		dataSize = binaryWriter.getPosition() - beforeDataSize
+        beforeDataSize = binaryWriter.getPosition()
+        self.writeData(binaryWriter)
+        dataSize = binaryWriter.getPosition() - beforeDataSize
 
-		beforeChildrenSize = binaryWriter.getPosition()
-		for child in self.children:
-			child.write(binaryWriter)
-		childrenSize = binaryWriter.getPosition() - beforeChildrenSize
-		
-		continuingPosition = binaryWriter.getPosition()
-		binaryWriter.seek(dynamicFieldsPosition)
+        beforeChildrenSize = binaryWriter.getPosition()
+        for child in self.children:
+            child.write(binaryWriter)
+        childrenSize = binaryWriter.getPosition() - beforeChildrenSize
+        
+        continuingPosition = binaryWriter.getPosition()
+        binaryWriter.seek(dynamicFieldsPosition)
 
-		binaryWriter.writeUInt32(12 + dataSize)
+        binaryWriter.writeUInt32(12 + dataSize)
 
-		binaryWriter.writeUInt32(12 + dataSize + childrenSize)
+        binaryWriter.writeUInt32(12 + dataSize + childrenSize)
 
-		binaryWriter.seek(continuingPosition)
+        binaryWriter.seek(continuingPosition)
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		pass
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        pass
 
-	def getFirstChildOfType(self, type) -> Chunk:
-		for chunk in self.children:
-			if isinstance(chunk, type):
-				return chunk
+    def getFirstChildOfType(self, type) -> Chunk:
+        for chunk in self.children:
+            if isinstance(chunk, type):
+                return chunk
 
-		return None
+        return None
 
-	def getChildrenOfType(self, type) -> list[Chunk]:
-		children = []
+    def getChildrenOfType(self, type) -> list[Chunk]:
+        children = []
 
-		for chunk in self.children:
-			if isinstance(chunk, type):
-				children.append(chunk)
+        for chunk in self.children:
+            if isinstance(chunk, type):
+                children.append(chunk)
 
-		return children
+        return children

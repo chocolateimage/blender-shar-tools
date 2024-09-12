@@ -13,19 +13,19 @@ from classes.Pure3DBinaryWriter import Pure3DBinaryWriter
 #
 
 class UnknownChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		return [ data ]
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        return [ data ]
 
-	def __init__(
-		self, 
-		identifier : int, 
-		children : list[Chunk] = None, 
-		data : bytes = None
-	) -> None:
-		super().__init__(identifier, children)
+    def __init__(
+        self, 
+        identifier : int, 
+        children : list[Chunk] = None, 
+        data : bytes = None
+    ) -> None:
+        super().__init__(identifier, children)
 
-		self.data : bytes = bytes() if data is None else data
+        self.data : bytes = bytes() if data is None else data
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeBytes(self.data)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeBytes(self.data)

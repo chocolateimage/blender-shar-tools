@@ -16,25 +16,25 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class CollisionAxisAlignedBoundingBoxChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		nothing = binaryReader.readUInt32()
+        nothing = binaryReader.readUInt32()
 
-		return [
-			nothing,
-		]
+        return [
+            nothing,
+        ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.COLLISION_AXIS_ALIGNED_BOUNDING_BOX, 
-		children : list[Chunk] = None, 
-		nothing: int = 0,
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.nothing = nothing
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.COLLISION_AXIS_ALIGNED_BOUNDING_BOX, 
+        children : list[Chunk] = None, 
+        nothing: int = 0,
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.nothing = nothing
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeUInt32(self.nothing)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeUInt32(self.nothing)

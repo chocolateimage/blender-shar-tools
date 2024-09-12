@@ -16,27 +16,27 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class ShaderTextureParameterChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		parameter = binaryReader.readPure3DFourCharacterCode()
-		value = binaryReader.readPure3DString()
+        parameter = binaryReader.readPure3DFourCharacterCode()
+        value = binaryReader.readPure3DString()
 
-		return [ parameter, value ]
+        return [ parameter, value ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.SHADER_TEXTURE_PARAMETER, 
-		children : list[Chunk] = None, 
-		parameter: str = "", 
-		value: str = ""
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.parameter = parameter
-		self.value = value
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.SHADER_TEXTURE_PARAMETER, 
+        children : list[Chunk] = None, 
+        parameter: str = "", 
+        value: str = ""
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.parameter = parameter
+        self.value = value
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writePure3DFourCharacterCode(self.parameter)
-		binaryWriter.writePure3DString(self.value)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writePure3DFourCharacterCode(self.parameter)
+        binaryWriter.writePure3DString(self.value)

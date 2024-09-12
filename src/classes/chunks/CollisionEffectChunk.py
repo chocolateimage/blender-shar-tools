@@ -16,35 +16,35 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class CollisionEffectChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		classType = binaryReader.readUInt32()
-		phyPropID = binaryReader.readUInt32()
-		soundResourceDataName = binaryReader.readPure3DString()
+        classType = binaryReader.readUInt32()
+        phyPropID = binaryReader.readUInt32()
+        soundResourceDataName = binaryReader.readPure3DString()
 
-		return [
-			classType,
-			phyPropID,
-			soundResourceDataName,
-		]
+        return [
+            classType,
+            phyPropID,
+            soundResourceDataName,
+        ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.COLLISION_EFFECT, 
-		children : list[Chunk] = None, 
-		classType: int = 0,
-		phyPropID: int = 0,
-		soundResourceDataName: str = "",
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.classType = classType
-		self.phyPropID = phyPropID
-		self.soundResourceDataName = soundResourceDataName
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.COLLISION_EFFECT, 
+        children : list[Chunk] = None, 
+        classType: int = 0,
+        phyPropID: int = 0,
+        soundResourceDataName: str = "",
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.classType = classType
+        self.phyPropID = phyPropID
+        self.soundResourceDataName = soundResourceDataName
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeUInt32(self.classType)
-		binaryWriter.writeUInt32(self.phyPropID)
-		binaryWriter.writePure3DString(self.soundResourceDataName)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeUInt32(self.classType)
+        binaryWriter.writeUInt32(self.phyPropID)
+        binaryWriter.writePure3DString(self.soundResourceDataName)

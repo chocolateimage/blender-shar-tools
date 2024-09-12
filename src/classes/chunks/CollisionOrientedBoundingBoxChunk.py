@@ -18,23 +18,23 @@ import mathutils
 #
 
 class CollisionOrientedBoundingBoxChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		halfExtents = binaryReader.readPure3DVector3()
+        halfExtents = binaryReader.readPure3DVector3()
 
-		return [ halfExtents ]
+        return [ halfExtents ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.COLLISION_ORIENTED_BOUNDING_BOX, 
-		children : list[Chunk] = None, 
-		halfExtents: mathutils.Vector = None
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.halfExtents = mathutils.Vector() if halfExtents is None else halfExtents
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.COLLISION_ORIENTED_BOUNDING_BOX, 
+        children : list[Chunk] = None, 
+        halfExtents: mathutils.Vector = None
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.halfExtents = mathutils.Vector() if halfExtents is None else halfExtents
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writePure3DVector3(self.halfExtents)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writePure3DVector3(self.halfExtents)

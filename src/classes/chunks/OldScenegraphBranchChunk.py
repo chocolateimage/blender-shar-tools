@@ -16,25 +16,25 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class OldScenegraphBranchChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		name = binaryReader.readPure3DString()
-		
-		return [ name ]
+        name = binaryReader.readPure3DString()
+        
+        return [ name ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.OLD_SCENEGRAPH_BRANCH, 
-		children: list[Chunk] = None,
-		name: str = "",
-	) -> None:
-		super().__init__(identifier, children)
-	
-		self.name = name
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.OLD_SCENEGRAPH_BRANCH, 
+        children: list[Chunk] = None,
+        name: str = "",
+    ) -> None:
+        super().__init__(identifier, children)
+    
+        self.name = name
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writePure3DString(self.name)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writePure3DString(self.name)
 
-		binaryWriter.writeUInt32(len(self.children))
+        binaryWriter.writeUInt32(len(self.children))

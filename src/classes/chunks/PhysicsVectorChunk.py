@@ -18,25 +18,25 @@ import mathutils
 #
 
 class PhysicsVectorChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		vector = binaryReader.readPure3DVector3()
+        vector = binaryReader.readPure3DVector3()
 
-		return [
-			vector
-		]
+        return [
+            vector
+        ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.PHYSICS_VECTOR, 
-		children : list[Chunk] = None, 
-		vector: mathutils.Vector = None
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.vector = mathutils.Vector() if vector is None else vector
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.PHYSICS_VECTOR, 
+        children : list[Chunk] = None, 
+        vector: mathutils.Vector = None
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.vector = mathutils.Vector() if vector is None else vector
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writePure3DVector3(self.vector)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writePure3DVector3(self.vector)

@@ -16,35 +16,35 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class CollisionVolumeChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		objectReferenceIndex = binaryReader.readUInt32()
-		ownerIndex = binaryReader.readInt32()
+        objectReferenceIndex = binaryReader.readUInt32()
+        ownerIndex = binaryReader.readInt32()
 
-		return [ objectReferenceIndex, ownerIndex ]
+        return [ objectReferenceIndex, ownerIndex ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.COLLISION_VOLUME, 
-		children : list[Chunk] = None, 
-		objectReferenceIndex: int = 0,
-		ownerIndex: int = 0
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.objectReferenceIndex = objectReferenceIndex
-		self.ownerIndex = ownerIndex
-	
-	def getNumberOfSubVolumes(self):
-		amount = 0
-		for i in self.children:
-			if i.identifier == self.identifier:
-				amount += 1
-		return amount
-		
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeUInt32(self.objectReferenceIndex)
-		binaryWriter.writeInt32(self.ownerIndex)
-		binaryWriter.writeUInt32(self.getNumberOfSubVolumes())
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.COLLISION_VOLUME, 
+        children : list[Chunk] = None, 
+        objectReferenceIndex: int = 0,
+        ownerIndex: int = 0
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.objectReferenceIndex = objectReferenceIndex
+        self.ownerIndex = ownerIndex
+    
+    def getNumberOfSubVolumes(self):
+        amount = 0
+        for i in self.children:
+            if i.identifier == self.identifier:
+                amount += 1
+        return amount
+        
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeUInt32(self.objectReferenceIndex)
+        binaryWriter.writeInt32(self.ownerIndex)
+        binaryWriter.writeUInt32(self.getNumberOfSubVolumes())

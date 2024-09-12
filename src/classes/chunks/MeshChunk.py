@@ -16,37 +16,37 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class MeshChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		name = binaryReader.readPure3DString()
-		version = binaryReader.readUInt32()
+        name = binaryReader.readPure3DString()
+        version = binaryReader.readUInt32()
 
-		return [ name, version ]
+        return [ name, version ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.MESH, 
-		children : list[Chunk] = None, 
-		name: str = "", 
-		version: int = 0
-	) -> None:
-		super().__init__(chunkIdentifiers.MESH,children)
-	
-		self.name = name
-		self.version = version
-	
-	def getNumberOfOldPrimitiveGroups(self) -> int:
-		numberOfOldPrimitiveGroups = 0
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.MESH, 
+        children : list[Chunk] = None, 
+        name: str = "", 
+        version: int = 0
+    ) -> None:
+        super().__init__(chunkIdentifiers.MESH,children)
+    
+        self.name = name
+        self.version = version
+    
+    def getNumberOfOldPrimitiveGroups(self) -> int:
+        numberOfOldPrimitiveGroups = 0
 
-		for child in self.children:
-			if child.identifier == chunkIdentifiers.OLD_PRIMITIVE_GROUP:
-				numberOfOldPrimitiveGroups += 1
+        for child in self.children:
+            if child.identifier == chunkIdentifiers.OLD_PRIMITIVE_GROUP:
+                numberOfOldPrimitiveGroups += 1
 
-		return numberOfOldPrimitiveGroups
+        return numberOfOldPrimitiveGroups
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writePure3DString(self.name)
-		binaryWriter.writeUInt32(self.version)
-		binaryWriter.writeUInt32(self.getNumberOfOldPrimitiveGroups())
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writePure3DString(self.name)
+        binaryWriter.writeUInt32(self.version)
+        binaryWriter.writeUInt32(self.getNumberOfOldPrimitiveGroups())

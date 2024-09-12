@@ -1,9 +1,12 @@
 {
-	"files.exclude":
-	{
-		"**/__pycache__": true
-	},
+    "files.exclude":
+    {
+        "**/__pycache__": true
+    },
     "python.analysis.diagnosticSeverityOverrides": {
         "reportInvalidTypeForm": "none"
-    }
+    },
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabSize": 4
 }

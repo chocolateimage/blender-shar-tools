@@ -18,25 +18,25 @@ from classes.SymmetricMatrix3x3 import SymmetricMatrix3x3
 #
 
 class PhysicsInertiaMatrixChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		matrix = binaryReader.readSymmetricMatrix3x3()
+        matrix = binaryReader.readSymmetricMatrix3x3()
 
-		return [
-			matrix
-		]
+        return [
+            matrix
+        ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.PHYSICS_INERTIA_MATRIX, 
-		children : list[Chunk] = None, 
-		matrix: SymmetricMatrix3x3 = None
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.matrix = SymmetricMatrix3x3() if matrix is None else matrix
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.PHYSICS_INERTIA_MATRIX, 
+        children : list[Chunk] = None, 
+        matrix: SymmetricMatrix3x3 = None
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.matrix = SymmetricMatrix3x3() if matrix is None else matrix
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeSymmetricMatrix3x3(self.matrix)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeSymmetricMatrix3x3(self.matrix)

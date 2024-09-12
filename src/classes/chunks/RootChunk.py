@@ -11,12 +11,12 @@ from classes.chunks.Chunk import Chunk
 #
 
 class RootChunk(Chunk):
-	def __init__(
-		self, 
-		identifier : int, 
-		children : list[Chunk] = None, 
-		isNewFile : bool = False
-	) -> None:
-		super().__init__(identifier, children)
+    def __init__(
+        self, 
+        identifier : int, 
+        children : list[Chunk] = None, 
+        isNewFile : bool = False
+    ) -> None:
+        super().__init__(identifier, children)
 
-		self.isNewFile : bool = isNewFile
+        self.isNewFile : bool = isNewFile

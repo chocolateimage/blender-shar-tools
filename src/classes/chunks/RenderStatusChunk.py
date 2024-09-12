@@ -16,25 +16,25 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class RenderStatusChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		castShadow = binaryReader.readUInt32()
+        castShadow = binaryReader.readUInt32()
 
-		return [
-			castShadow,
-		]
+        return [
+            castShadow,
+        ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.RENDER_STATUS, 
-		children : list[Chunk] = None, 
-		castShadow: int = 0,
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.castShadow = castShadow
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.RENDER_STATUS, 
+        children : list[Chunk] = None, 
+        castShadow: int = 0,
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.castShadow = castShadow
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeUInt32(self.castShadow)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeUInt32(self.castShadow)

@@ -16,23 +16,23 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class CollisionSphereChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		radius = binaryReader.readFloat()
+        radius = binaryReader.readFloat()
 
-		return [ radius ]
+        return [ radius ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.COLLISION_SPHERE, 
-		children : list[Chunk] = None, 
-		radius: float = 0
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.radius = radius
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.COLLISION_SPHERE, 
+        children : list[Chunk] = None, 
+        radius: float = 0
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.radius = radius
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeFloat(self.radius)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeFloat(self.radius)

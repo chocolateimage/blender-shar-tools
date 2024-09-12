@@ -16,23 +16,23 @@ import data.chunkIdentifiers as chunkIdentifiers
 #
 
 class OldScenegraphSortOrderChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		sortOrder = binaryReader.readFloat()
-		
-		return [ sortOrder ]
+        sortOrder = binaryReader.readFloat()
+        
+        return [ sortOrder ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.OLD_SCENEGRAPH_SORT_ORDER, 
-		children: list[Chunk] = None,
-		sortOrder: float = 0,
-	) -> None:
-		super().__init__(identifier, children)
-	
-		self.sortOrder = sortOrder
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.OLD_SCENEGRAPH_SORT_ORDER, 
+        children: list[Chunk] = None,
+        sortOrder: float = 0,
+    ) -> None:
+        super().__init__(identifier, children)
+    
+        self.sortOrder = sortOrder
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeFloat(self.sortOrder)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeFloat(self.sortOrder)

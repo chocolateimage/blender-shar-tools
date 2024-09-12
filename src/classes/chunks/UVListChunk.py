@@ -18,35 +18,35 @@ import mathutils
 #
 
 class UVListChunk(Chunk):
-	@staticmethod
-	def parseData(data : bytes, isLittleEndian : bool) -> list:
-		binaryReader = Pure3DBinaryReader(data, isLittleEndian)
+    @staticmethod
+    def parseData(data : bytes, isLittleEndian : bool) -> list:
+        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
-		numberOfUVs = binaryReader.readUInt32()
-		channel = binaryReader.readUInt32()
-		
-		uvs = []
-		
-		for i in range(numberOfUVs):
-			uvs.append(binaryReader.readPure3DVector2())
+        numberOfUVs = binaryReader.readUInt32()
+        channel = binaryReader.readUInt32()
+        
+        uvs = []
+        
+        for i in range(numberOfUVs):
+            uvs.append(binaryReader.readPure3DVector2())
 
-		return [ channel, uvs ]
+        return [ channel, uvs ]
 
-	def __init__(
-		self, 
-		identifier: int = chunkIdentifiers.UV_LIST, 
-		children : list[Chunk] = None, 
-		channel: int = 0, 
-		uvs: list[mathutils.Vector] = None
-	) -> None:
-		super().__init__(identifier,children)
-	
-		self.channel = channel
-		self.uvs = [] if uvs is None else uvs
+    def __init__(
+        self, 
+        identifier: int = chunkIdentifiers.UV_LIST, 
+        children : list[Chunk] = None, 
+        channel: int = 0, 
+        uvs: list[mathutils.Vector] = None
+    ) -> None:
+        super().__init__(identifier,children)
+    
+        self.channel = channel
+        self.uvs = [] if uvs is None else uvs
 
-	def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
-		binaryWriter.writeUInt32(len(self.uvs))
-		binaryWriter.writeUInt32(self.channel)
+    def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
+        binaryWriter.writeUInt32(len(self.uvs))
+        binaryWriter.writeUInt32(self.channel)
 
-		for uv in self.uvs:
-			binaryWriter.writePure3DVector2(uv)
+        for uv in self.uvs:
+            binaryWriter.writePure3DVector2(uv)
