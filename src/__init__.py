@@ -40,6 +40,7 @@ import classes.properties.ShaderProperties
 import classes.properties.PathProperties
 import classes.properties.CollisionProperties
 import classes.properties.FileCollectionProperties
+import classes.properties.ManagementPanel
 
 #
 # Initialisation
@@ -54,6 +55,7 @@ def register():
 
     classes.operators.AddCollisionOperator.register()
 
+    classes.properties.ManagementPanel.register()
     classes.properties.FenceProperties.register()
     classes.properties.PathProperties.register()
     classes.properties.ShaderProperties.register()
@@ -69,6 +71,7 @@ def unregister():
 
     classes.operators.AddCollisionOperator.unregister()
 
+    classes.properties.ManagementPanel.unregister()
     classes.properties.FenceProperties.unregister()
     classes.properties.PathProperties.unregister()
     classes.properties.ShaderProperties.unregister()
