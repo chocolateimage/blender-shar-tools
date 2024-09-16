@@ -17,7 +17,49 @@ You can rename the "src" directory if you want.
 I may come up with a more intuitive guide for installing the addon.
 
 ## Usage
-Not even close to ready yet, stay tuned?  
+
+**Read before using:** You can find most panels, etc. in the category "Blender SHAR Tools" (press N to show categories on the right side)
+
+### Create an new P3D file
+In the panel "Management" press "Add P3D" then a new P3D collection will added to the scene collection.  
+Make sure all P3D collections' name end with ".p3d"
+
+### Importing a P3D file
+"File" -> "Import" -> "Pure3D File (.p3d)".  
+On the import window you can select what to import on the right side.
+
+### Exporting a P3D collection
+"File" -> "Export" -> "Pure3D file (.p3d)"  
+**Important:** On the right side on the export window select what collection you want to export.
+
+### How to create a static mesh
+1. Create an object mesh like you usually do.
+2. Move the object to the P3D collection's "Static Entities" subcollection
+3. Assign an existing or new material
+4. (Optional) Change SHAR shader properties in the "SHAR Shader Properties" (in the Material Properties, just scroll down)
+
+### Materials/Shaders?
+Change SHAR shader properties in the "SHAR Shader Properties" (in the Material Properties on an object, just scroll down)
+
+Explanations of the properties:
+
+#### Raw Texture Name
+Instead of importing a texture into Blender you can type an existing texture name from SHAR into the field.
+
+#### Terrain Type
+Used when exporting intersects (see [Intersect Usage](#how-to-create-intersects))
+
+#### What to know
+
+- Don't worry about texture sizes, the addon will automatically fix sizes internally.
+
+### How to create intersects
+Intersects are generated at export from Static Entities that have "track" or "polySurfaceShape" in the name and have a terrain type set in the material.
+
+Multi material objects are currently not supported.
+
+## Issues
+
 The "main" branch is being developed on, so make sure to update the addon first before reporting an issue.
 
 ## Contributing
