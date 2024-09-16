@@ -6,6 +6,12 @@ This addon currently targets Blender 4.2 and is based on DonutTeam's blender-sha
 The Pure3D classes within this repo are based very significantly upon [LuaP3DLib](https://github.com/Hampo/LuaP3DLib) and the [TypeScript Pure3D Library](https://github.com/donutteam/npm-pure3d).
 
 ## Installing
+### Variant 1
+<a href="https://packages.playlook.de/blenderextensions/add-on-chocolateimage-blender-shar-tools-v1.0.0.zip?repository=/blenderextensions/api/v1/extensions">Drag & drop into Blender</a>
+
+If the link above doesn't work, try [it from here](https://packages.playlook.de/blenderextensions/)
+
+### Variant 2
 Download the repo with Git or click on "Code" -> "Download ZIP" at the top.  
 Copy/move the "src" directory to:
 - Windows: `~\AppData\Roaming\Blender Foundation\Blender\4.2\scripts\addons`
