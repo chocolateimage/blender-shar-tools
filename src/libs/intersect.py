@@ -26,6 +26,8 @@ class Face():
     terrainType: int
 
 def convertToChunks(l: list[Face]):
+    if len(l) == 0:
+        return []
     bm = bmesh.new()
     
     x_from = math.inf
