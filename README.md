@@ -1,4 +1,4 @@
-# Blender SHAR Tools
+# Hit & Run for Blender
 A blender addon that adds various tools for working with P3D files from The Simpsons Hit & Run. 
 
 This addon currently targets Blender 4.2 and is based on DonutTeam's blender-shar-tools.

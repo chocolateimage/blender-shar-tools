@@ -1,0 +1,12 @@
+schema_version = "1.0.0"
+
+id = "chocolateimage_blender_shar_tools"
+version = "1.0.0"
+name = "Hit & Run for Blender"
+tagline = "A collection of tools to help mod The Simpsons Hit & Run."
+maintainer = "chocolateimage <chocolateimage@protonmail.com>"
+type = "add-on"
+
+blender_version_min = "4.2.0"
+
+license = ["SPDX:MIT"]

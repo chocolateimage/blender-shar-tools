@@ -3,14 +3,14 @@
 #
 
 bl_info = {
-    "name": "The Simpsons Hit & Run Tools",
+    "name": "Hit & Run for Blender",
     "description": "A collection of tools to help mod The Simpsons Hit & Run.",
-    "author": "Donut Team",
+    "author": "chocolateimage (fork of Donut Team)",
     "version": (1, 0, 0),
-    "blender": (4, 1, 1),
+    "blender": (4, 2, 0),
     "location": "TODO",
-    "doc_url": "https://donutteam.com", # TODO: Actual documentation URL
-    "tracker_url": "https://github.com/donutteam/blender-shar-tools/issues",
+    "doc_url": "https://github.com/chocolateimage/blender-shar-tools/blob/main/README.md",
+    "tracker_url": "https://github.com/chocolateimage/blender-shar-tools/issues",
     "category": "Import-Export",
 }
 
