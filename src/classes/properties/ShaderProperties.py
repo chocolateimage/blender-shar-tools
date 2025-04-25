@@ -11,12 +11,13 @@ import bpy
 
 def update_shader_properties(self, context: bpy.types.Context):
     mat = getattr(self,"id_data",None) # for some weird reason the material is in "id_data" but not in context when updated from a script
-    if mat == None:
+    if mat is None:
         return
 
     if mat.shaderProperties.blendMode == "alpha" or mat.shaderProperties.alphaTest:
         mat.blend_method = "HASHED"
-        mat.shadow_method = "HASHED"
+        if hasattr(mat, "shadow_method"):
+            mat.shadow_method = "HASHED"
         try:
             bsdf = mat.node_tree.nodes["Principled BSDF"]
             texture_image = mat.node_tree.nodes["Image Texture"]
@@ -25,7 +26,8 @@ def update_shader_properties(self, context: bpy.types.Context):
             print(e)
     else:
         mat.blend_method = "OPAQUE"
-        mat.shadow_method = "OPAQUE"
+        if hasattr(mat, "shadow_method"):
+            mat.shadow_method = "OPAQUE"
     
     mat.use_backface_culling = not mat.shaderProperties.twoSided
 
@@ -195,14 +197,14 @@ class ShaderPropertiesPanel(bpy.types.Panel):
 
     @classmethod
     def poll(self,context):
-        return context.material != None
+        return context.material is not None
 
     def draw(self, context):
         layout = self.layout
 
         mat = context.material
 
-        if mat == None:
+        if mat is None:
             return
 
         # Fix spacing
@@ -212,7 +214,7 @@ class ShaderPropertiesPanel(bpy.types.Panel):
         # Props
         layout.prop(mat,"name")
         layout.prop(mat.shaderProperties,"pddiShader")
-        if mat.use_nodes and mat.node_tree != None and "Principled BSDF" in mat.node_tree.nodes and "Image Texture" in mat.node_tree.nodes and mat.node_tree.nodes["Image Texture"].image != None:
+        if mat.use_nodes and mat.node_tree is not None and "Principled BSDF" in mat.node_tree.nodes and "Image Texture" in mat.node_tree.nodes and mat.node_tree.nodes["Image Texture"].image is not None:
             layout.label(text="Change texture above")
         else:
             layout.label(text="Add image texture above or:")
@@ -231,7 +233,7 @@ class ShaderPropertiesPanel(bpy.types.Panel):
         layout.prop(mat.shaderProperties,"terrainType")
         panel_header, panel_body = layout.panel("shaderPropertiesAdvanced",default_closed=True)
         panel_header.label(text="Advanced")
-        if panel_body != None:
+        if panel_body is not None:
             layout.prop(mat.shaderProperties,"shadeMode")
             layout.prop(mat.shaderProperties,"alphaCompare")
             layout.prop(mat.shaderProperties,"alphaCompareThreshold")

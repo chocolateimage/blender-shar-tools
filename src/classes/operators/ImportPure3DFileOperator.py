@@ -12,7 +12,6 @@ import bpy_extras
 from classes.chunks.Chunk import Chunk
 from classes.chunks.FenceChunk import FenceChunk
 from classes.chunks.Fence2Chunk import Fence2Chunk
-from classes.chunks.HistoryChunk import HistoryChunk
 from classes.chunks.ImageChunk import ImageChunk
 from classes.chunks.TextureChunk import TextureChunk
 from classes.chunks.MeshChunk import MeshChunk
@@ -35,10 +34,9 @@ from classes.chunks.ScenegraphChunk import ScenegraphChunk
 from classes.chunks.OldScenegraphBranchChunk import OldScenegraphBranchChunk
 from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
 from classes.chunks.OldScenegraphRootChunk import OldScenegraphRootChunk
-from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
 from classes.chunks.OldScenegraphTransformChunk import OldScenegraphTransformChunk
 from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
-from classes.chunks.GameAttrChunks import GameAttrChunk, GameAttrIntegerParameterChunk
+from classes.chunks.GameAttrChunks import GameAttrChunk
 
 from classes.File import File
 
@@ -50,7 +48,6 @@ import libs.path as PathLib
 import libs.collision as CollisionLib
 
 import mathutils
-import math
 
 import utils
 
@@ -456,8 +453,8 @@ class ImportedPure3DFile():
 
         if chunk.hasTranslucency:
             material.blend_method = "HASHED"
-
-            material.shadow_method = "HASHED"
+            if hasattr(material, "shadow_method"):
+                material.shadow_method = "HASHED"
 
         for childChunkIndex, childChunk in enumerate(chunk.children):
             if isinstance(childChunk, ShaderTextureParameterChunk):
@@ -473,7 +470,7 @@ class ImportedPure3DFile():
                         self.stickyImages.remove(childChunk.value)
 
                     texture_image = material.node_tree.nodes.new("ShaderNodeTexImage")
-                    if image != None:
+                    if image is not None:
                         texture_image.image = image
 
                     multiply_node: bpy.types.ShaderNodeMixRGB = material.node_tree.nodes.new("ShaderNodeMixRGB")
@@ -486,7 +483,7 @@ class ImportedPure3DFile():
                     material.node_tree.links.new(multiply_node.inputs["Color2"], color_node.outputs["Color"])
                     
                     material.node_tree.links.new(bsdf.inputs["Base Color"],multiply_node.outputs["Color"])
-                    if image != None:
+                    if image is not None:
                         material.node_tree.links.new(bsdf.inputs["Alpha"],texture_image.outputs["Alpha"]) # Always connect alpha nodes, transparency only visible when blend method is set to "Alpha Hashed"
             
             elif isinstance(childChunk, ShaderColourParameterChunk):
@@ -494,15 +491,15 @@ class ImportedPure3DFile():
                 color_argb = (childChunk.colour.red / 255,childChunk.colour.green / 255,childChunk.colour.blue / 255,childChunk.colour.alpha / 255)
                 color_rgb = (childChunk.colour.red / 255,childChunk.colour.green / 255,childChunk.colour.blue / 255)
                 if childChunk.parameter == "DIFF":
-                    bsdf.inputs[0].default_value = color_argb # Diffusive Color
+                    bsdf.inputs["Base Color"].default_value = color_argb
                     material.shaderProperties.diffuseColor = color_rgb # Specular
                 elif childChunk.parameter == "SPEC":
                     material.shaderProperties.specularColor = color_rgb # Specular
                 elif childChunk.parameter == "AMBI":
                     material.shaderProperties.ambientColor = color_rgb # Ambient
                 elif childChunk.parameter == "EMIS":
-                    bsdf.inputs[26].default_value = color_argb # Emission Color
-                    bsdf.inputs[27].default_value = 0 # Emission Strength
+                    bsdf.inputs["Emission Color"].default_value = color_argb
+                    bsdf.inputs["Emission Strength"].default_value = 0
                 else:
                     pass
             
@@ -569,7 +566,7 @@ class ImportedPure3DFile():
                 self.numberOfTextureChunksImported += 1
                 image = ImageLib.createImage(childChunk, chunk)
                 for mat in bpy.data.materials:
-                    if mat.shaderProperties != None:
+                    if mat.shaderProperties is not None:
                         if mat.shaderProperties.rawTextureName == chunk.name:
                             mat.shaderProperties.rawTextureName = ""
                             if "Image Texture" in mat.node_tree.nodes:

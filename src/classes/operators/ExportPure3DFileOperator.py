@@ -16,14 +16,11 @@ import utils
 
 import math
 
-from classes.chunks.RootChunk import RootChunk
 from classes.chunks.FenceChunk import FenceChunk
 from classes.chunks.Fence2Chunk import Fence2Chunk
-from classes.chunks.HistoryChunk import HistoryChunk
 from classes.chunks.ImageChunk import ImageChunk
 from classes.chunks.ImageDataChunk import ImageDataChunk
 from classes.chunks.TextureChunk import TextureChunk
-from classes.chunks.MeshChunk import MeshChunk
 from classes.chunks.PathChunk import PathChunk
 from classes.chunks.ShaderChunk import ShaderChunk
 from classes.chunks.ShaderColourParameterChunk import ShaderColourParameterChunk
@@ -44,21 +41,13 @@ from classes.chunks.OldScenegraphDrawableChunk import OldScenegraphDrawableChunk
 from classes.chunks.OldScenegraphSortOrderChunk import OldScenegraphSortOrderChunk
 from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
 from classes.chunks.GameAttrChunks import GameAttrChunk, GameAttrIntegerParameterChunk
-from classes.chunks.IntersectChunk import IntersectChunk
-from classes.chunks.SurfaceTypeListChunk import SurfaceTypeListChunk
-from classes.chunks.BoundingBoxChunk import BoundingBoxChunk
-from classes.chunks.BoundingSphereChunk import BoundingSphereChunk
 
 from classes.properties.ShaderProperties import ShaderProperties
 
 from classes.File import File
 from classes.Colour import Colour
 
-import libs.fence as FenceLib
-import libs.image as ImageLib
 import libs.mesh as MeshLib
-import libs.message as MessageLib
-import libs.path as PathLib
 import libs.collision as CollisionLib
 import libs.intersect as IntersectLib
 
@@ -230,7 +219,7 @@ class ExportedPure3DFile():
 
         params = []
 
-        if mat.use_nodes and mat.node_tree != None and "Principled BSDF" in mat.node_tree.nodes and "Image Texture" in mat.node_tree.nodes and mat.node_tree.nodes["Image Texture"].image != None:
+        if mat.use_nodes and mat.node_tree is not None and "Principled BSDF" in mat.node_tree.nodes and "Image Texture" in mat.node_tree.nodes and mat.node_tree.nodes["Image Texture"].image is not None:
             imageTexture = mat.node_tree.nodes["Image Texture"]
 
             self.exportTexture(imageTexture.image)
@@ -243,9 +232,9 @@ class ExportedPure3DFile():
         params.append(ShaderColourParameterChunk(parameter="DIFF", colour=Colour.fromFloatVector(shaderProperties.diffuseColor)))
         params.append(ShaderColourParameterChunk(parameter="SPEC", colour=Colour.fromFloatVector(shaderProperties.specularColor)))
         params.append(ShaderColourParameterChunk(parameter="AMBI", colour=Colour.fromFloatVector(shaderProperties.ambientColor)))
-        if mat.use_nodes and mat.node_tree != None and "Principled BSDF" in mat.node_tree.nodes:
+        if mat.use_nodes and mat.node_tree is not None and "Principled BSDF" in mat.node_tree.nodes:
             bsdf = mat.node_tree.nodes["Principled BSDF"]
-            params.append(ShaderColourParameterChunk(parameter="EMIS", colour=Colour.fromFloatVector(bsdf.inputs[26].default_value)))
+            params.append(ShaderColourParameterChunk(parameter="EMIS", colour=Colour.fromFloatVector(bsdf.inputs["Emission Color"].default_value)))
 
         params.append(ShaderIntegerParameterChunk(parameter="2SID", value=shaderProperties.twoSided))
         params.append(ShaderIntegerParameterChunk(parameter="LIT", value=shaderProperties.lighting))
