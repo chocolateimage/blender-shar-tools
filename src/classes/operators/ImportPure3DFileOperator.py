@@ -76,6 +76,8 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
     option_import_instanced: bpy.props.BoolProperty(name = "Import Instanced Chunks", description = "Import InstStatEntity, InstStatPhys and DynaPhys chunks from the Pure3D File(s)", default = True)
     option_import_scenegraphs: bpy.props.BoolProperty(name = "Import Scenegraph Chunks", description = "Import Scenegraph chunks from the Pure3D File(s)", default = True)
 
+    option_simple_shader_import: bpy.props.BoolProperty(name = "Simple Shaders", description = "Import shaders without vertex colors", default = False)
+
     def draw(self, context):
         self.layout.prop(self, "option_import_textures")
 
@@ -92,6 +94,8 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
         self.layout.prop(self, "option_import_instanced")
 
         self.layout.prop(self, "option_import_scenegraphs")
+
+        self.layout.prop(self, "option_simple_shader_import")
 
     def execute(self, context):
         print(self.files)
@@ -495,16 +499,22 @@ class ImportedPure3DFile():
                     if image is not None:
                         texture_image.image = image
 
-                    multiply_node: bpy.types.ShaderNodeMixRGB = material.node_tree.nodes.new("ShaderNodeMixRGB")
-                    multiply_node.blend_type = "MULTIPLY"
-                    multiply_node.inputs["Fac"].default_value = 1
+                    simple_shaders = getattr(self.importPure3DFileOperator, "option_simple_shader_import", False)
 
-                    color_node = material.node_tree.nodes.new("ShaderNodeVertexColor")
+                    if simple_shaders:
+                        material.node_tree.links.new(bsdf.inputs["Base Color"], texture_image.outputs["Color"])
+                    else:
+                        multiply_node: bpy.types.ShaderNodeMixRGB = material.node_tree.nodes.new("ShaderNodeMixRGB")
+                        multiply_node.blend_type = "MULTIPLY"
+                        multiply_node.inputs["Fac"].default_value = 1
 
-                    material.node_tree.links.new(multiply_node.inputs["Color1"], texture_image.outputs["Color"])
-                    material.node_tree.links.new(multiply_node.inputs["Color2"], color_node.outputs["Color"])
-                    
-                    material.node_tree.links.new(bsdf.inputs["Base Color"],multiply_node.outputs["Color"])
+                        color_node = material.node_tree.nodes.new("ShaderNodeVertexColor")
+
+                        material.node_tree.links.new(multiply_node.inputs["Color1"], texture_image.outputs["Color"])
+                        material.node_tree.links.new(multiply_node.inputs["Color2"], color_node.outputs["Color"])
+                        
+                        material.node_tree.links.new(bsdf.inputs["Base Color"],multiply_node.outputs["Color"])
+
                     if image is not None:
                         material.node_tree.links.new(bsdf.inputs["Alpha"],texture_image.outputs["Alpha"]) # Always connect alpha nodes, transparency only visible when blend method is set to "Alpha Hashed"
             
