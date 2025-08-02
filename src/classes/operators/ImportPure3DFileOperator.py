@@ -74,6 +74,7 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
     option_import_static_entities: bpy.props.BoolProperty(name = "Import Static Entities", description = "Import StaticEntity chunks from the Pure3D File(s)", default = True)
     option_import_collisions: bpy.props.BoolProperty(name = "Import Collisions", description = "Import StaticPhys chunks from the Pure3D File(s)", default = True)
     option_import_instanced: bpy.props.BoolProperty(name = "Import Instanced Chunks", description = "Import InstStatEntity, InstStatPhys and DynaPhys chunks from the Pure3D File(s)", default = True)
+    option_import_scenegraphs: bpy.props.BoolProperty(name = "Import Scenegraph Chunks", description = "Import Scenegraph chunks from the Pure3D File(s)", default = True)
 
     def draw(self, context):
         self.layout.prop(self, "option_import_textures")
@@ -89,6 +90,8 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
         self.layout.prop(self, "option_import_collisions")
 
         self.layout.prop(self, "option_import_instanced")
+
+        self.layout.prop(self, "option_import_scenegraphs")
 
     def execute(self, context):
         print(self.files)
@@ -159,6 +162,9 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
             if importedPure3DFile.numberOfInstancedImported > 0:
                 messageLines.append(f"\t- Number of Instanced Chunks: { importedPure3DFile.numberOfInstancedImported }")
 
+            if importedPure3DFile.numberOfScenegraphsImported > 0:
+                messageLines.append(f"\t- Number of Scenegraph Chunks: { importedPure3DFile.numberOfScenegraphsImported }")
+
             if importedPure3DFile.numberOfUnsupportedChunksSkipped > 0:
                 messageLines.append(f"\t- Number of Unsupported Chunks: { importedPure3DFile.numberOfUnsupportedChunksSkipped }")
 
@@ -216,6 +222,8 @@ class ImportedPure3DFile():
 
         self.instancedCollection : bpy.types.Collection = bpy.data.collections.new("Instanced")
 
+        self.scenegraphCollection : bpy.types.Collection = bpy.data.collections.new("Scenegraphs")
+
         self.numberOfTextureChunksImported : int = 0
 
         self.numberOfShaderChunksImported : int = 0
@@ -229,6 +237,8 @@ class ImportedPure3DFile():
         self.numberOfCollisionsImported : int = 0
 
         self.numberOfInstancedImported : int = 0
+
+        self.numberOfScenegraphsImported : int = 0
 
         self.numberOfUnsupportedChunksSkipped : int = 0
 
@@ -272,19 +282,26 @@ class ImportedPure3DFile():
                     self.importStaticPhysChunk(chunk)
 
             elif isinstance(chunk, InstStatEntityChunk):
-                if self.importPure3DFileOperator.option_import_instanced:
+                if getattr(self.importPure3DFileOperator, "option_import_instanced", True):
                     self.importInstancedChunk(chunk)
 
             elif isinstance(chunk, InstStatPhysChunk):
-                if self.importPure3DFileOperator.option_import_instanced:
+                if getattr(self.importPure3DFileOperator, "option_import_instanced", True):
                     self.importInstancedChunk(chunk)
 
             elif isinstance(chunk, DynaPhysChunk):
-                if self.importPure3DFileOperator.option_import_instanced:
+                if getattr(self.importPure3DFileOperator, "option_import_instanced", True):
                     self.importInstancedChunk(chunk)
+
+            elif isinstance(chunk, ScenegraphChunk):
+                if getattr(self.importPure3DFileOperator, "option_import_scenegraphs", True):
+                    self.importScenegraphChunk(chunk)
 
             elif isinstance(chunk, GameAttrChunk):
                 self.importGameAttrChunk(chunk)
+
+            elif isinstance(chunk, MeshChunk):
+                self.importMeshChunk(chunk)
 
             else:
                 print(f"Unsupported chunk type: { hex(chunk.identifier) }")
@@ -295,7 +312,7 @@ class ImportedPure3DFile():
         # Create File Collection
         #
 
-        if self.numberOfFenceChunksImported == 0 and self.numberOfPathChunksImported == 0 and self.numberOfStaticEntityChunksImported == 0 and self.numberOfCollisionsImported == 0 and self.numberOfInstancedImported == 0:
+        if self.numberOfFenceChunksImported == 0 and self.numberOfPathChunksImported == 0 and self.numberOfStaticEntityChunksImported == 0 and self.numberOfCollisionsImported == 0 and self.numberOfInstancedImported == 0 and self.numberOfScenegraphsImported == 0:
             return
 
         fileCollection = bpy.data.collections.new(self.fileName)
@@ -351,6 +368,11 @@ class ImportedPure3DFile():
             fileCollection.children.link(self.instancedCollection)
         else:
             bpy.data.collections.remove(self.instancedCollection)
+
+        if self.numberOfScenegraphsImported > 0:
+            fileCollection.children.link(self.scenegraphCollection)
+        else:
+            bpy.data.collections.remove(self.scenegraphCollection)
         
         for collection in self.collectionsToHide:
             utils.get_layer_collection_from_collection(collection).hide_viewport = True
@@ -581,6 +603,59 @@ class ImportedPure3DFile():
                 for i in objects:
                     self.collisionCollection.objects.link(i)
                     self.numberOfCollisionsImported += 1
+
+    def importScenegraphChunk(self, chunk: ScenegraphChunk):
+        scenegraphObject = bpy.data.objects.new(chunk.name, None)
+        self.scenegraphCollection.objects.link(scenegraphObject)
+
+        rootChunk: OldScenegraphRootChunk = chunk.getFirstChildOfType(OldScenegraphRootChunk)
+        branchChunk: OldScenegraphBranchChunk = rootChunk.getFirstChildOfType(OldScenegraphBranchChunk)
+
+        for childChunk in branchChunk.children:
+            if isinstance(childChunk, OldScenegraphTransformChunk):
+                transformObject = self.importScenegraphTransformChunk(childChunk)
+                transformObject.parent = scenegraphObject
+
+        self.numberOfScenegraphsImported += 1
+
+    def importScenegraphTransformChunk(self, chunk: OldScenegraphTransformChunk) -> bpy.types.Object:
+        obj = bpy.data.objects.new(chunk.name, None)
+        self.scenegraphCollection.objects.link(obj)
+
+        location, rotation, scale = chunk.matrix.transposed().decompose()
+
+        location = location.xzy
+
+        rotation_euler: mathutils.Euler = rotation.to_euler("ZXY")
+
+        rotation_euler = mathutils.Euler((-rotation_euler.x,-rotation_euler.z,-rotation_euler.y))
+
+        scale = scale.xzy
+
+        obj.location = location
+        obj.rotation_euler = rotation_euler
+        obj.scale = scale
+
+        for childChunk in chunk.children:
+            if isinstance(childChunk, OldScenegraphTransformChunk):
+                childObject = self.importScenegraphTransformChunk(childChunk)
+                childObject.parent = obj
+            elif isinstance(childChunk, OldScenegraphDrawableChunk):
+                if childChunk.drawableName in bpy.data.meshes:
+                    childObject = bpy.data.objects.new(childChunk.name, bpy.data.meshes[childChunk.drawableName])
+                    self.scenegraphCollection.objects.link(childObject)
+                    childObject.parent = obj
+                else:
+                    print(f"OldScenegraphDrawableChunk: Mesh {childChunk.drawableName} not found")
+
+        return obj
+
+    def importMeshChunk(self, chunk: MeshChunk):
+        if chunk.name in bpy.data.meshes:
+            return
+
+        MeshLib.createMesh(chunk)
+
 
 def menu_item(self, context):
     self.layout.operator(ImportPure3DFileOperator.bl_idname, text = "Pure3D File (.p3d)")

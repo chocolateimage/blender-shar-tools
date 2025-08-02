@@ -7,14 +7,12 @@ import bmesh
 
 import utils
 
-import classes.chunks.Chunk
 import classes.chunks.IndexListChunk
 import classes.chunks.MeshChunk
 import classes.chunks.OldPrimitiveGroupChunk
 import classes.chunks.PositionListChunk
 import classes.chunks.UVListChunk
 import classes.chunks.ColourListChunk
-import classes.chunks.VertexShaderChunk
 import classes.chunks.BoundingBoxChunk
 import classes.chunks.BoundingSphereChunk
 import classes.chunks.RenderStatusChunk
