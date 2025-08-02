@@ -21,23 +21,13 @@ def createImage(chunk: ImageChunk, textureChunk: TextureChunk | None = None):
             with tempfile.NamedTemporaryFile(prefix="image",mode="wb+",delete=False) as f:
                 f.write(childChildChunk.imageData)
                 filename = f.name
-            
-            img_src = bpy.data.images.load(filename)
 
-            img = bpy.data.images.new(textureChunk.name if textureChunk else chunk.name, chunk.width, chunk.height,alpha=True)
-
-            new_pixels = []
-            for i in img_src.pixels:
-                new_pixels.append(i)
-
-            img.pixels = new_pixels
-
+            img = bpy.data.images.load(filename)
             img.use_fake_user = True
+            img.name = chunk.name
 
-            bpy.data.images.remove(img_src)
+            img.pack()
 
             os.remove(filename)
-
-            img.update()
 
             return img
