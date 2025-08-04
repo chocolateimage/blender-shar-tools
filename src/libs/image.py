@@ -24,7 +24,7 @@ def createImage(chunk: ImageChunk, textureChunk: TextureChunk | None = None):
 
             img = bpy.data.images.load(filename)
             img.use_fake_user = True
-            img.name = chunk.name
+            img.name = textureChunk.name if textureChunk else chunk.name
 
             img.pack()
 

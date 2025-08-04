@@ -10,6 +10,7 @@ import bpy
 import bpy_extras
 
 from classes.chunks.Chunk import Chunk
+from classes.chunks.UnknownChunk import UnknownChunk
 from classes.chunks.FenceChunk import FenceChunk
 from classes.chunks.Fence2Chunk import Fence2Chunk
 from classes.chunks.ImageChunk import ImageChunk
@@ -39,6 +40,8 @@ from classes.chunks.PhysicsObjectChunk import PhysicsObjectChunk
 from classes.chunks.GameAttrChunks import GameAttrChunk
 
 from classes.File import File
+
+from instances.defaultChunkRegistry import defaultChunkRegistry
 
 import libs.fence as FenceLib
 import libs.image as ImageLib
@@ -260,6 +263,8 @@ class ImportedPure3DFile():
         # Iterate Chunks
         #
 
+        unsupported_chunk_types = []
+
         for chunkIndex, chunk in enumerate(self.chunks):
             if isinstance(chunk, FenceChunk):
                 if getattr(self.importPure3DFileOperator, "option_import_fences", True):
@@ -308,16 +313,21 @@ class ImportedPure3DFile():
                 self.importMeshChunk(chunk)
 
             else:
-                print(f"Unsupported chunk type: { hex(chunk.identifier) }")
+                if chunk.identifier not in unsupported_chunk_types:
+                    unsupported_chunk_types.append(chunk.identifier)
 
                 self.numberOfUnsupportedChunksSkipped += 1
+
+        for i in unsupported_chunk_types:
+            chunkClass = defaultChunkRegistry.getClass(i)
+            if chunkClass is UnknownChunk:
+                print(f"Unknown chunk type: { hex(chunk.identifier) }")
+            else:
+                print(f"Unsupported chunk type: { hex(chunk.identifier) } ({chunkClass.__name__})")
 
         #
         # Create File Collection
         #
-
-        if self.numberOfFenceChunksImported == 0 and self.numberOfPathChunksImported == 0 and self.numberOfStaticEntityChunksImported == 0 and self.numberOfCollisionsImported == 0 and self.numberOfInstancedImported == 0 and self.numberOfScenegraphsImported == 0:
-            return
 
         fileCollection = bpy.data.collections.new(self.fileName)
         fileCollectionProperties = fileCollection.fileCollectionProperties
@@ -348,35 +358,12 @@ class ImportedPure3DFile():
             sharStickyImage = fileCollectionProperties.sharStickyImages.add()
             sharStickyImage.image = bpy.data.images[stickyImage]
         
-        if self.numberOfFenceChunksImported > 0:
-            fileCollection.children.link(self.fenceCollection)
-        else:
-            bpy.data.collections.remove(self.fenceCollection)
-
-        if self.numberOfPathChunksImported > 0:
-            fileCollection.children.link(self.pathCollection)
-        else:
-            bpy.data.collections.remove(self.pathCollection)
-
-        if self.numberOfStaticEntityChunksImported > 0:
-            fileCollection.children.link(self.staticEntityCollection)
-        else:
-            bpy.data.collections.remove(self.staticEntityCollection)
-
-        if self.numberOfCollisionsImported > 0:
-            fileCollection.children.link(self.collisionCollection)
-        else:
-            bpy.data.collections.remove(self.collisionCollection)
-
-        if self.numberOfInstancedImported > 0:
-            fileCollection.children.link(self.instancedCollection)
-        else:
-            bpy.data.collections.remove(self.instancedCollection)
-
-        if self.numberOfScenegraphsImported > 0:
-            fileCollection.children.link(self.scenegraphCollection)
-        else:
-            bpy.data.collections.remove(self.scenegraphCollection)
+        fileCollection.children.link(self.fenceCollection)
+        fileCollection.children.link(self.pathCollection)
+        fileCollection.children.link(self.staticEntityCollection)
+        fileCollection.children.link(self.collisionCollection)
+        fileCollection.children.link(self.instancedCollection)
+        fileCollection.children.link(self.scenegraphCollection)
         
         for collection in self.collectionsToHide:
             utils.get_layer_collection_from_collection(collection).hide_viewport = True

@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-from classes.chunks.Chunk import Chunk
 from classes.chunks.Fence2Chunk import Fence2Chunk
 from classes.chunks.FenceChunk import FenceChunk
 from classes.chunks.HistoryChunk import HistoryChunk
