@@ -462,7 +462,7 @@ class ImportedPure3DFile():
         
         bsdf = material.node_tree.nodes["Principled BSDF"]
 
-        bsdf.inputs[2].default_value = 1 # Roughness
+        bsdf.inputs["Roughness"].default_value = 1
 
         if chunk.hasTranslucency:
             material.blend_method = "HASHED"
