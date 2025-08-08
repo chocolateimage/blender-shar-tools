@@ -240,8 +240,11 @@ def calculate_inertia_matrix(volumes: list[CollisionVolumeChunk], centre_of_mass
         mass = calculate_volume_mass(volume)
         total_mass += mass
 
-        if isinstance(volume.getFirstChildOfType(CollisionOrientedBoundingBoxChunk), CollisionOrientedBoundingBoxChunk):
-            obb = volume.getFirstChildOfType(CollisionOrientedBoundingBoxChunk)
+        obb = volume.getFirstChildOfType(CollisionOrientedBoundingBoxChunk)
+        sphere = volume.getFirstChildOfType(CollisionSphereChunk)
+        cylinder = volume.getFirstChildOfType(CollisionCylinderChunk)
+
+        if obb is not None:
             ex, ey, ez = obb.halfExtents.x * 2, obb.halfExtents.y * 2, obb.halfExtents.z * 2
             mass_factor = 1.0 / 12.0
 
@@ -279,8 +282,7 @@ def calculate_inertia_matrix(volumes: list[CollisionVolumeChunk], centre_of_mass
 
             inertia_matrix += local_matrix_translated
 
-        elif isinstance(volume.getFirstChildOfType(CollisionSphereChunk), CollisionSphereChunk):
-            sphere = volume.getFirstChildOfType(CollisionSphereChunk)
+        elif sphere is not None:
             radius = sphere.radius
             mass_factor = 2.0 / 5.0
 
@@ -296,8 +298,7 @@ def calculate_inertia_matrix(volumes: list[CollisionVolumeChunk], centre_of_mass
 
             inertia_matrix += local_matrix_translated
 
-        elif isinstance(volume.getFirstChildOfType(CollisionCylinderChunk), CollisionCylinderChunk):
-            cylinder = volume.getFirstChildOfType(CollisionCylinderChunk)
+        elif cylinder is not None:
             radius = cylinder.cylinderRadius
             half_length = cylinder.length
             mass_factor = 1.0
