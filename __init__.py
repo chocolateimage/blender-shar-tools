@@ -23,10 +23,6 @@ import sys
 
 sys.path.append(os.path.dirname(__file__))
 
-#
-# Imports
-#
-
 import bpy
 
 import classes.operators.AddCollisionOperator

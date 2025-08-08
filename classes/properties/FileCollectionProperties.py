@@ -1,7 +1,3 @@
-#
-# Imports
-#
-
 import bpy
 import mathutils
 
@@ -62,7 +58,7 @@ class FileCollectionPanel(bpy.types.Panel):
 
         collection = context.collection
 
-        if collection == None:
+        if collection is None:
             return
 
         # Fix spacing

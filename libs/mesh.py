@@ -1,7 +1,3 @@
-#
-# Imports
-#
-
 import bpy
 import bmesh
 
@@ -204,7 +200,7 @@ def meshToChunk(mesh: bpy.types.Mesh, obj: bpy.types.Object) -> classes.chunks.M
 
             indexList.indices.append(len(positionList.positions) - 1)
 
-            if color_layer_verts != None:
+            if color_layer_verts is not None:
                 color = loop.vert[color_layer_verts]
                 colourList.colours.append(Colour(
                     round(color.x * 255),
@@ -212,7 +208,7 @@ def meshToChunk(mesh: bpy.types.Mesh, obj: bpy.types.Object) -> classes.chunks.M
                     round(color.z * 255),
                     round(color.w * 255)
                 ))
-            elif color_layer_loops != None:
+            elif color_layer_loops is not None:
                 color = loop[color_layer_loops]
                 colourList.colours.append(Colour(
                     round(color.x * 255),
@@ -229,7 +225,7 @@ def meshToChunk(mesh: bpy.types.Mesh, obj: bpy.types.Object) -> classes.chunks.M
     meshChildren.append(classes.chunks.BoundingSphereChunk.BoundingSphereChunk(center=center.xzy,radius=radius))
 
     castShadow = 0
-    if obj != None:
+    if obj is not None:
         castShadow = int(obj.visible_shadow)
 
     meshChildren.append(classes.chunks.RenderStatusChunk.RenderStatusChunk(castShadow=castShadow))

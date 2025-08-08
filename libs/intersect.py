@@ -25,8 +25,8 @@ class Face():
     vertices: list[mathutils.Vector]
     terrainType: int
 
-def convertToChunks(l: list[Face]):
-    if len(l) == 0:
+def convertToChunks(faces: list[Face]):
+    if len(faces) == 0:
         return []
     bm = bmesh.new()
     
@@ -36,7 +36,7 @@ def convertToChunks(l: list[Face]):
     z_from = math.inf
     z_to = -math.inf
 
-    for i in l:
+    for i in faces:
         verts = []
         for vertex in i.vertices:
             if vertex.x < x_from:

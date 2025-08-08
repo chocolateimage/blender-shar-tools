@@ -1,7 +1,3 @@
-#
-# Imports
-#
-
 from __future__ import annotations
 
 from classes.chunks.Fence2Chunk import Fence2Chunk

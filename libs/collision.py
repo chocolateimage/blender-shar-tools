@@ -1,7 +1,3 @@
-#
-# Imports
-#
-
 import bpy
 import bmesh
 
@@ -32,13 +28,13 @@ import numpy as np
 def createCollision(collisionObject: CollisionObjectChunk, collisionEffect: CollisionEffectChunk | None = None, physicsObject: PhysicsObjectChunk | None = None) -> list[bpy.types.Object]:
     collisions = createFromVolume(collisionObject,collisionObject.getFirstChildOfType(CollisionVolumeChunk))
     if len(collisions) > 0:
-        if collisionEffect != None:
+        if collisionEffect is not None:
             collisionProperties = collisions[0].collisionProperties
             collisionProperties.hasCollisionEffect = True
             collisionProperties.collisionEffectClassType = str(collisionEffect.classType)
             collisionProperties.collisionEffectPhyPropID = str(collisionEffect.phyPropID)
             collisionProperties.collisionEffectSound = collisionEffect.soundResourceDataName
-            if physicsObject != None:
+            if physicsObject is not None:
                 collisionProperties.physicsRestingSensitivity = physicsObject.restingSensitivity
                 collisionProperties.physicsVolume = physicsObject.volume
     return collisions
@@ -387,7 +383,7 @@ def collisionsToChunks(name: str, collisions: list[bpy.types.Object]):
         collisionObject,
         collisionEffect
     ]
-    if physicsObject != None:
+    if physicsObject is not None:
         chunks.insert(0,physicsObject)
     return chunks
 
@@ -399,7 +395,7 @@ def collisionsToCollisionObject(name: str, collisions: list[bpy.types.Object]):
     volume.children.append(CollisionAxisAlignedBoundingBoxChunk())
     
     for collision in collisions:
-        if collision.collisionProperties == None:
+        if collision.collisionProperties is None:
             continue
         
         properties = collision.collisionProperties
