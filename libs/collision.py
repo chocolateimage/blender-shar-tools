@@ -366,7 +366,7 @@ def collisionsToChunks(name: str, collisions: list[bpy.types.Object]):
             if collisionEffect.classType in [3, 4, 10]:
                 volumes = collisionObject.getFirstChildOfType(CollisionVolumeChunk).children
                 centreOfMass = calculate_centre_of_mass(volumes)
-                matrix = calculate_inertia_matrix(volumes,calculate_centre_of_mass(volumes))
+                matrix = calculate_inertia_matrix(volumes, centreOfMass)
                 physicsObject = PhysicsObjectChunk(
                     name = name,
                     numJoints = 0,

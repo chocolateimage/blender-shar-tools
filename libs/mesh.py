@@ -124,8 +124,10 @@ def meshToChunk(mesh: bpy.types.Mesh, obj: bpy.types.Object) -> classes.chunks.M
     meshName = utils.get_basename(mesh.name)
 
     oldPrimitiveGroups: list[classes.chunks.OldPrimitiveGroupChunk.OldPrimitiveGroupChunk] = []
+    hasFallbackGroups = False
 
     if len(mesh.materials) == 0:
+        hasFallbackGroups = True
         oldPrimitiveGroup = classes.chunks.OldPrimitiveGroupChunk.OldPrimitiveGroupChunk(
             children=[
                 #classes.chunks.VertexShaderChunk.VertexShaderChunk(), # seems to only be used on Xbox
@@ -185,7 +187,11 @@ def meshToChunk(mesh: bpy.types.Mesh, obj: bpy.types.Object) -> classes.chunks.M
     color_layer_loops = bm.loops.layers.color.active or bm.loops.layers.float_color.active
 
     for face in bm.faces:
-        oldPrimitiveGroup = oldPrimitiveGroups[face.material_index]
+        if hasFallbackGroups:
+            oldPrimitiveGroup = oldPrimitiveGroups[0]
+        else:
+            oldPrimitiveGroup = oldPrimitiveGroups[face.material_index]
+
         indexList: classes.chunks.IndexListChunk.IndexListChunk = oldPrimitiveGroup.getFirstChildOfType(classes.chunks.IndexListChunk.IndexListChunk)
         colourList: classes.chunks.ColourListChunk.ColourListChunk = oldPrimitiveGroup.getFirstChildOfType(classes.chunks.ColourListChunk.ColourListChunk)
         positionList: classes.chunks.PositionListChunk.PositionListChunk = oldPrimitiveGroup.getFirstChildOfType(classes.chunks.PositionListChunk.PositionListChunk)
