@@ -49,7 +49,7 @@ class GameAttrIntegerParameterChunk(Chunk):
         binaryReader = Pure3DBinaryReader(data, isLittleEndian)
 
         parameter = binaryReader.readPure3DString()
-        value = binaryReader.readUInt32()
+        value = binaryReader.readUInt32() & ~(1 << 30)
 
         return [ parameter, value ]
 
