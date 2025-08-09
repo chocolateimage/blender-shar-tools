@@ -38,7 +38,6 @@ class SymmetricMatrix3x3:
     def Translate(inertia: SymmetricMatrix3x3, centre: mathutils.Vector):
         return inertia + (SymmetricMatrix3x3.Identity() * centre.length_squared - SymmetricMatrix3x3.Outer(centre))
 
-
     def __init__(self, xx: float = 0, xy: float = 0, xz: float = 0, yy: float = 0, yz: float = 0, zz: float = 0):
         self.xx: float = xx
         self.xy: float = xy

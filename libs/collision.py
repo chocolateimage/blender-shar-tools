@@ -243,9 +243,9 @@ def calculate_inertia_matrix(volumes: list[CollisionVolumeChunk], centre_of_mass
         mass = calculate_volume_mass(volume)
         total_mass += mass
 
-        obb = volume.getFirstChildOfType(CollisionOrientedBoundingBoxChunk)
-        sphere = volume.getFirstChildOfType(CollisionSphereChunk)
-        cylinder = volume.getFirstChildOfType(CollisionCylinderChunk)
+        obb: CollisionOrientedBoundingBoxChunk = volume.getFirstChildOfType(CollisionOrientedBoundingBoxChunk)
+        sphere: CollisionSphereChunk = volume.getFirstChildOfType(CollisionSphereChunk)
+        cylinder: CollisionCylinderChunk = volume.getFirstChildOfType(CollisionCylinderChunk)
 
         if obb is not None:
             ex, ey, ez = obb.halfExtents.x * 2, obb.halfExtents.y * 2, obb.halfExtents.z * 2
@@ -302,49 +302,33 @@ def calculate_inertia_matrix(volumes: list[CollisionVolumeChunk], centre_of_mass
             inertia_matrix += local_matrix_translated
 
         elif cylinder is not None:
-            radius = cylinder.cylinderRadius
-            half_length = cylinder.length
-            mass_factor = 1.0
+            childChunks = cylinder.getChildrenOfType(CollisionVectorChunk)
+            center: mathutils.Vector  = childChunks[0].vector
+            axis: mathutils.Vector  = childChunks[1].vector
 
-            inertia_x = (1.0 / 12.0) * mass_factor * (3 * radius**2 + half_length**2)
-            inertia_y = (1.0 / 2.0) * mass_factor * radius**2
-            inertia_z = inertia_x
+            m = SymmetricMatrix3x3.Identity()
 
-            vectors = cylinder.getChildrenOfType(CollisionVectorChunk)
-            if len(vectors) != 2:
-                raise ValueError("A Collision Cylinder Chunk does not have the correct number of sub vectors.")
+            if cylinder.flatEnd:
+                h = 2.0 * cylinder.length
+            else:
+                h = 2.0 * (cylinder.length + cylinder.cylinderRadius * 2.0 / 3.0)
 
-            direction = vectors[1].vector
+            r2 = cylinder.cylinderRadius ** 2
+            h2 = h ** 2
+            m.xx = r2 / 2.0
+            m.yy = m.zz = (h2 + 3.0 * r2) / 12.0
 
-            matrix_x = direction
-            matrix_y = direction
-            matrix_z = direction
+            x = mathutils.Vector((1.0, 0.0, 0.0))
+            O2 = x.cross(axis)
 
-            rot = np.array([
-                [matrix_x.x, matrix_x.y, matrix_x.z],
-                [matrix_y.x, matrix_y.y, matrix_y.z],
-                [matrix_z.x, matrix_z.y, matrix_z.z]
-            ])
+            if O2.length < 0.001:
+                continue
 
-            rot_t = transpose(rot)
-            inertia_matrix_local = np.array([
-                [inertia_x, 0, 0],
-                [0, inertia_y, 0],
-                [0, 0, inertia_z]
-            ])
+            O2.normalize()
+            O3 = axis.cross(O2)
+            O3.normalize()
 
-            inertia_rotated = multiply(multiply(rot_t, inertia_matrix_local), rot)
-
-            local_matrix = SymmetricMatrix3x3(
-                inertia_rotated[0, 0], inertia_rotated[0, 1], inertia_rotated[0, 2],
-                inertia_rotated[1, 1], inertia_rotated[1, 2],
-                inertia_rotated[2, 2]
-            )
-
-            centre = vectors[0].vector - centre_of_mass
-            local_matrix_translated = SymmetricMatrix3x3.Translate(local_matrix, centre)
-
-            inertia_matrix += local_matrix_translated
+            inertia_matrix += SymmetricMatrix3x3.Translate(m, center)
 
         else:
             raise ValueError("Unexpected chunk type encountered.")
