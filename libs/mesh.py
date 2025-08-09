@@ -52,17 +52,24 @@ def createMesh(chunk: classes.chunks.MeshChunk.MeshChunk) -> bpy.types.Mesh:
                             total_indices.append((tri[0]+indexoffset,tri[2]+indexoffset,tri[1]+indexoffset))
                     elif childChunk.primitiveType == childChunk.primitiveTypes["TRIANGLE_STRIP"]:
                         for i in range(len(childChildChunk.indices) - 2):
-                            if i % 2 == 1: # need to switch these around for some reason
-                                total_indices.append((
-                                    childChildChunk.indices[i] + indexoffset,
-                                    childChildChunk.indices[i+1] + indexoffset,
-                                    childChildChunk.indices[i+2] + indexoffset
-                                ))
-                            else:
+                            if (
+                                childChildChunk.indices[i] == childChildChunk.indices[i + 1]
+                                or childChildChunk.indices[i + 1] == childChildChunk.indices[i + 2]
+                                or childChildChunk.indices[i] == childChildChunk.indices[i + 2]
+                            ):
+                                continue
+
+                            if i % 2 == 0:
                                 total_indices.append((
                                     childChildChunk.indices[i] + indexoffset,
                                     childChildChunk.indices[i+2] + indexoffset,
                                     childChildChunk.indices[i+1] + indexoffset
+                                ))
+                            else:
+                                total_indices.append((
+                                    childChildChunk.indices[i] + indexoffset,
+                                    childChildChunk.indices[i+1] + indexoffset,
+                                    childChildChunk.indices[i+2] + indexoffset
                                 ))
                     else:
                         # TODO: Implement LINE_LIST and LINE_STRIP
