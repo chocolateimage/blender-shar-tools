@@ -285,13 +285,9 @@ class ExportedPure3DFile():
         ))
     
     def addAsInterset(self, mesh: bpy.types.Mesh):
-        if "track" not in mesh.name and "polySurfaceShape" not in mesh.name:
-            return
         if len(mesh.materials) == 0:
             return
         shaderProperties: ShaderProperties = mesh.materials[0].shaderProperties
-        if shaderProperties.terrainType == "unset":
-            return
         bm = bmesh.new()
         bm.from_mesh(mesh)
 
@@ -307,10 +303,13 @@ class ExportedPure3DFile():
                 loop = face.loops[i]
                 positions.append(loop.vert.co.xzy)
 
-            terrainType = int(shaderProperties.terrainType)
+            if shaderProperties.terrainType == "unset":
+                terrainType = 0
+            else:
+                terrainType = int(shaderProperties.terrainType)
 
-            if shaderProperties.terrainTypeInterior:
-                terrainType |= 1 << 7
+                if shaderProperties.terrainTypeInterior:
+                    terrainType |= 1 << 7
 
             self.intersectFaces.append(IntersectLib.Face(positions, terrainType))
 
@@ -375,7 +374,9 @@ class ExportedPure3DFile():
                             hasAlpha = 1
 
                     chunk = MeshLib.meshToChunk(mesh, obj)
-                    self.addAsInterset(mesh)
+                    if "track" in obj.name or "polySurfaceShape" in obj.name:
+                        self.addAsInterset(mesh)
+
                     self.chunks.append(StaticEntityChunk(
                         version = 0,
                         hasAlpha = hasAlpha,
