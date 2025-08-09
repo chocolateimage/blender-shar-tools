@@ -27,7 +27,7 @@ class BinaryReader:
         return len(self._data)
 
     def seek(self, position : int) -> None:
-        if position < 0 or position >= self.getLength():
+        if position < 0 or position > self.getLength():
             raise ValueError("Seek position out of range.")
         
         self._position = position

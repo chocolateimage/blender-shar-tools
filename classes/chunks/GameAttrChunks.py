@@ -17,9 +17,7 @@ import mathutils
 
 class GameAttrChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         name = binaryReader.readPure3DString()
         version = binaryReader.readUInt32()
         binaryReader.readUInt32() # Number of parameters
@@ -45,9 +43,7 @@ class GameAttrChunk(Chunk):
 
 class GameAttrIntegerParameterChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         parameter = binaryReader.readPure3DString()
         value = binaryReader.readUInt32()
 
@@ -71,9 +67,7 @@ class GameAttrIntegerParameterChunk(Chunk):
 
 class GameAttrColourParameterChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         parameter = binaryReader.readPure3DString()
         value = binaryReader.readPure3DColour()
 
@@ -97,9 +91,7 @@ class GameAttrColourParameterChunk(Chunk):
 
 class GameAttrMatrixParameterChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         parameter = binaryReader.readPure3DString()
         value = binaryReader.readPure3DMatrix()
 
@@ -123,9 +115,7 @@ class GameAttrMatrixParameterChunk(Chunk):
 
 class GameAttrVectorParameterChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         parameter = binaryReader.readPure3DString()
         value = binaryReader.readPure3DVector3()
 
@@ -149,9 +139,7 @@ class GameAttrVectorParameterChunk(Chunk):
 
 class GameAttrFloatParameterChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         parameter = binaryReader.readPure3DString()
         value = binaryReader.readFloat()
 

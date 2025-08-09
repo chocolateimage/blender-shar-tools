@@ -73,9 +73,7 @@ class OldPrimitiveGroupChunk(Chunk):
     ]
 
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         version = binaryReader.readUInt32()
         shaderName = binaryReader.readPure3DString()
         primitiveType = binaryReader.readUInt32()

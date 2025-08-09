@@ -15,9 +15,7 @@ from classes.SymmetricMatrix3x3 import SymmetricMatrix3x3
 
 class PhysicsInertiaMatrixChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         matrix = binaryReader.readSymmetricMatrix3x3()
 
         return [

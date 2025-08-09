@@ -15,9 +15,7 @@ import mathutils
 
 class UVListChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         numberOfUVs = binaryReader.readUInt32()
         channel = binaryReader.readUInt32()
         

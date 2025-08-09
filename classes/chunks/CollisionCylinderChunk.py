@@ -13,9 +13,7 @@ import data.chunkIdentifiers as chunkIdentifiers
 
 class CollisionCylinderChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         cylinderRadius = binaryReader.readFloat()
         length = binaryReader.readFloat()
         flatEnd = binaryReader.readUInt16()

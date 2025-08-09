@@ -15,9 +15,7 @@ import mathutils
 
 class BoundingBoxChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         low = binaryReader.readPure3DVector3()
         high = binaryReader.readPure3DVector3()
         

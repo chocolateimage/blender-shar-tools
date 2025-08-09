@@ -15,9 +15,7 @@ import data.chunkIdentifiers as chunkIdentifiers
 
 class Fence2Chunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         start = binaryReader.readPure3DVector3()
         end = binaryReader.readPure3DVector3()
         normal = binaryReader.readPure3DVector3()

@@ -15,9 +15,7 @@ import data.chunkIdentifiers as chunkIdentifiers
 
 class PathChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         numberOfPoints = binaryReader.readUInt32()
 
         points = []

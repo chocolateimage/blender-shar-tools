@@ -15,9 +15,7 @@ import mathutils
 
 class IntersectChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         indexCount = binaryReader.readUInt32()
         indices = []
         for i in range(indexCount):

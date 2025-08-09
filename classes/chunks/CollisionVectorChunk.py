@@ -15,9 +15,7 @@ import mathutils
 
 class CollisionVectorChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         vector = binaryReader.readPure3DVector3()
 
         return [ vector ]

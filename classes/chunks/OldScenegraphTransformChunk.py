@@ -15,9 +15,7 @@ import mathutils
 
 class OldScenegraphTransformChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         name = binaryReader.readPure3DString()
         numberOfChildren = binaryReader.readUInt32()
         matrix = binaryReader.readPure3DMatrix()

@@ -13,9 +13,7 @@ import data.chunkIdentifiers as chunkIdentifiers
 
 class CollisionEffectChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         classType = binaryReader.readUInt32()
         phyPropID = binaryReader.readUInt32()
         soundResourceDataName = binaryReader.readPure3DString()

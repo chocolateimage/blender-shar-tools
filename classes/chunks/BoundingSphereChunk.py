@@ -15,9 +15,7 @@ import mathutils
 
 class BoundingSphereChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         center = binaryReader.readPure3DVector3()
         radius = binaryReader.readFloat()
         

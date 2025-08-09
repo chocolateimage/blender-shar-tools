@@ -15,9 +15,7 @@ import mathutils
 
 class PositionListChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         numberOfPositions = binaryReader.readUInt32()
         
         positions = []

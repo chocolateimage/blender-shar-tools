@@ -13,9 +13,7 @@ import data.chunkIdentifiers as chunkIdentifiers
 
 class CollisionSphereChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         radius = binaryReader.readFloat()
 
         return [ radius ]

@@ -3,7 +3,6 @@ from __future__ import annotations
 from classes.chunks.Chunk import Chunk
 from classes.chunks.RootChunk import RootChunk
 
-from classes.ChunkRegistry import ChunkRegistry
 from classes.Pure3DBinaryReader import Pure3DBinaryReader
 from classes.Pure3DBinaryWriter import Pure3DBinaryWriter
 
@@ -24,7 +23,7 @@ class File:
         BIG_ENDIAN_COMPRESSED = 0x5033445A # ZD3P
 
     @staticmethod
-    def fromBytes(buffer : bytes, chunkRegistry : ChunkRegistry | None = None) -> RootChunk:
+    def fromBytes(buffer: bytes) -> RootChunk:
         #
         # Read Buffer
         #
@@ -49,12 +48,15 @@ class File:
             binaryReader.isLittleEndian = False
         else:
             raise Exception("Input bytes are not a P3D file.")
+        
+        binaryReader.seekOffset(8)
 
         #
         # Create Root Chunk
         #
 
-        return RootChunk(identifier = fileIdentifier, children = File._readChunkChildren(buffer[12:], chunkRegistry if chunkRegistry is not None else defaultChunkRegistry, binaryReader.isLittleEndian))
+        chunk = RootChunk(identifier = fileIdentifier, children = File._readChunkChildren(binaryReader))
+        return chunk
 
     @staticmethod
     def toBytes(chunks : list[Chunk], littleEndian : bool = True) -> bytes:
@@ -83,21 +85,7 @@ class File:
         return binaryWriter.getBytes()
 
     @staticmethod
-    def _readChunk(buffer : bytes, chunkRegistry : ChunkRegistry, isLittleEndian : bool, offset : int | None = None) -> tuple[Chunk, int]:
-        #
-        # Get Offset
-        #
-
-        offset = offset if offset is not None else 0
-
-        #
-        # Create Binary Reader
-        #
-
-        binaryReader = Pure3DBinaryReader(buffer, isLittleEndian)
-
-        binaryReader.seek(offset)
-
+    def _readChunk(binaryReader: Pure3DBinaryReader) -> tuple[Chunk, int]:
         #
         # Get Chunk Header Data
         #
@@ -112,27 +100,20 @@ class File:
         # Get Chunk Class
         #
 
-        chunkClass = chunkRegistry.getClass(identifier)
+        chunkClass = defaultChunkRegistry.getClass(identifier)
 
         #
         # Get Data
         #
 
-        dataOffset = offset + 12
-
-        rawData : bytes | None = None
+        parsedData = []
 
         if dataSize > 12:
             extraDataSize = dataSize - 12
 
-            rawData = buffer[dataOffset : dataOffset + extraDataSize]
-
-            dataOffset += extraDataSize
-
-        parsedData = []
-
-        if (rawData is not None):
-            parsedData = chunkClass.parseData(rawData, isLittleEndian)
+            originalPosition = binaryReader.getPosition()
+            parsedData = chunkClass.parseData(binaryReader)
+            binaryReader.seek(originalPosition + extraDataSize)
 
         #
         # Get Children
@@ -143,9 +124,7 @@ class File:
         if entireSize > dataSize:
             childrenDataSize = entireSize - dataSize
 
-            childrenBuffer = buffer[dataOffset : dataOffset + childrenDataSize]
-
-            children = File._readChunkChildren(childrenBuffer, chunkRegistry, isLittleEndian)
+            children = File._readChunkChildren(binaryReader, binaryReader.getPosition() + childrenDataSize)
 
         #
         # Return
@@ -154,19 +133,17 @@ class File:
         # Note: We now return the entireSize here because chocolateimage
         #    found this to me notably faster in _readChunkChildren than
         #    calling getEntireSize (which "writes" all the data to get the size)
-        return chunkClass(identifier, children, *parsedData), entireSize
+        return chunkClass(identifier, children, *parsedData)
 
     @staticmethod
-    def _readChunkChildren(buffer : bytes, chunkRegistry : ChunkRegistry, isLittleEndian : bool) -> list[Chunk]:
+    def _readChunkChildren(binaryReader: Pure3DBinaryReader, endBufferOffset: int | None = None) -> list[Chunk]:
         children : list[Chunk] = []
 
-        offset : int = 0
+        endBufferOffset = endBufferOffset if endBufferOffset is not None else binaryReader.getLength()
 
-        while offset < len(buffer):
-            chunk, entireSize = File._readChunk(buffer, chunkRegistry, isLittleEndian, offset)
+        while binaryReader.getPosition() < endBufferOffset:
+            chunk = File._readChunk(binaryReader)
 
             children.append(chunk)
-
-            offset += entireSize
 
         return children

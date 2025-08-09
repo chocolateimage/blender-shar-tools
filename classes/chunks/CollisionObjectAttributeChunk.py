@@ -13,9 +13,7 @@ import data.chunkIdentifiers as chunkIdentifiers
 
 class CollisionObjectAttributeChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         staticAttribute = binaryReader.readUInt16()
         defaultArea = binaryReader.readUInt32()
         canRoll = binaryReader.readUInt16()

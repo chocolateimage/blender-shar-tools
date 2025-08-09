@@ -14,9 +14,7 @@ import data.chunkIdentifiers as chunkIdentifiers
 
 class ShaderColourParameterChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         parameter = binaryReader.readPure3DFourCharacterCode()
         colour = binaryReader.readPure3DColour()
 

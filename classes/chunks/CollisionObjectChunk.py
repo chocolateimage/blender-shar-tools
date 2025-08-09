@@ -13,9 +13,7 @@ import data.chunkIdentifiers as chunkIdentifiers
 
 class CollisionObjectChunk(Chunk):
     @staticmethod
-    def parseData(data : bytes, isLittleEndian : bool) -> list:
-        binaryReader = Pure3DBinaryReader(data, isLittleEndian)
-
+    def parseData(binaryReader: Pure3DBinaryReader) -> list:
         name = binaryReader.readPure3DString()
         version = binaryReader.readUInt32()
         materialName = binaryReader.readPure3DString()
