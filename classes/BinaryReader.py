@@ -36,8 +36,6 @@ class BinaryReader:
         self.seek(self._position + offset)
 
     def readBytes(self, size : int) -> bytes:
-        self._checkSize(size)
-
         valueBytes = self._data[self._position : self._position + size].tobytes()
 
         self._position += size
@@ -120,9 +118,3 @@ class BinaryReader:
         value = valueBytes.decode("utf-8")
 
         return value
-
-    def _checkSize(self, neededBytes : int) -> None:
-        availableBytes = self.getLength() - self._position
-
-        if neededBytes > availableBytes:
-            raise ValueError(f"Operation requires an additional { neededBytes } bytes but only { availableBytes } bytes are available.")
