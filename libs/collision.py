@@ -212,17 +212,20 @@ def calculate_centre_of_mass(volumes: list[CollisionVolumeChunk]):
     return weighted_sum / total_mass if total_mass > 0 else mathutils.Vector()
 
 def calculate_volume_mass(volume: CollisionVolumeChunk):
-    sphere = next((c for c in volume.children if isinstance(c, CollisionSphereChunk)), None)
+    sphere: CollisionSphereChunk = volume.getFirstChildOfType(CollisionSphereChunk)
     if sphere:
         return (4.0 / 3.0) * math.pi * (sphere.radius ** 3)
     
-    obb = next((c for c in volume.children if isinstance(c, CollisionOrientedBoundingBoxChunk)), None)
-    if obb:
+    obb: CollisionOrientedBoundingBoxChunk = volume.getFirstChildOfType(CollisionOrientedBoundingBoxChunk)
+    if obb is not None:
         return 8.0 * obb.halfExtents.x * obb.halfExtents.y * obb.halfExtents.z
     
-    cylinder = next((c for c in volume.children if isinstance(c, CollisionCylinderChunk)), None)
-    if cylinder:
-        return math.pi * (cylinder.cylinderRadius ** 2) * (cylinder.length * 2)
+    cylinder: CollisionCylinderChunk = volume.getFirstChildOfType(CollisionCylinderChunk)
+    if cylinder is not None:
+        if cylinder.flatEnd:
+            return 2 * math.pi * (cylinder.cylinderRadius ** 2) * cylinder.length
+        else:
+            return 2 * math.pi * cylinder.cylinderRadius * (cylinder.length * cylinder.cylinderRadius + (2/3) * cylinder.cylinderRadius ** 2)
     
     return 0.0
 
