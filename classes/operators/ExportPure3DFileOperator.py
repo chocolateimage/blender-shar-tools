@@ -261,12 +261,17 @@ class ExportedPure3DFile():
         params.append(ShaderColourParameterChunk(parameter="CBVC", colour=Colour(255,255,255,255)))
 
         if shaderProperties.terrainType != "unset":
+            terrainTypeValue = int(shaderProperties.terrainType)
+
+            if shaderProperties.terrainTypeInterior:
+                terrainTypeValue |= (1 << 30)
+
             self.chunks.append(GameAttrChunk(
                 name = mat.name,
                 children = [
                     GameAttrIntegerParameterChunk(
                         parameter="TerrainType",
-                        value=int(shaderProperties.terrainType)
+                        value=terrainTypeValue
                     )
                 ]
             ))
@@ -301,7 +306,13 @@ class ExportedPure3DFile():
             for i in [0,2,1]:
                 loop = face.loops[i]
                 positions.append(loop.vert.co.xzy)
-            self.intersectFaces.append(IntersectLib.Face(positions,int(shaderProperties.terrainType)))
+
+            terrainType = int(shaderProperties.terrainType)
+
+            if shaderProperties.terrainTypeInterior:
+                terrainType |= 1 << 7
+
+            self.intersectFaces.append(IntersectLib.Face(positions, terrainType))
 
     def export(self):
         fileCollectionProperties = self.collection.fileCollectionProperties

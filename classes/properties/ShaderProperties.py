@@ -183,6 +183,10 @@ class ShaderProperties(bpy.types.PropertyGroup):
         ],
         default = "unset"
     )
+    terrainTypeInterior: bpy.props.BoolProperty(
+        name = "Is Interior",
+        description="If it should set the interior bit for the terrain type"
+    )
 
 class ShaderPropertiesPanel(bpy.types.Panel):
     bl_label = "SHAR Shader Properties"
@@ -227,6 +231,8 @@ class ShaderPropertiesPanel(bpy.types.Panel):
         layout.prop(mat.shaderProperties,"twoSided")
         layout.prop(mat.shaderProperties,"shininess")
         layout.prop(mat.shaderProperties,"terrainType")
+        layout.prop(mat.shaderProperties,"terrainTypeInterior")
+
         panel_header, panel_body = layout.panel("shaderPropertiesAdvanced",default_closed=True)
         panel_header.label(text="Advanced")
         if panel_body is not None:

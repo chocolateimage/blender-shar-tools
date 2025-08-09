@@ -367,14 +367,15 @@ class ImportedPure3DFile():
     def importGameAttrChunk(self, chunk: GameAttrChunk):
         for parameter in chunk.children:
             if parameter.parameter == "TerrainType":
-                if parameter.value < 0 or parameter.value > 7:
-                    print(f"Invalid TerrainType {parameter.value} on {chunk.name}")
-                    continue
-
                 if chunk.name not in bpy.data.materials:
                     continue
                 material = bpy.data.materials[chunk.name]
-                material.shaderProperties.terrainType = str(parameter.value)
+                terrainType = parameter.value
+                if terrainType & (1 << 30) == 1 << 30:
+                    terrainType &= ~(1 << 30)
+                    material.shaderProperties.terrainTypeInterior = True
+
+                material.shaderProperties.terrainType = str(terrainType)
 
     def importInstancedChunk(self, chunk: Chunk):
         
