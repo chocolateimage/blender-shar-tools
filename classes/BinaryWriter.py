@@ -9,16 +9,14 @@ import data.dataSizes
 #
 
 class BinaryWriter:
-    def __init__(self, isLittleEndian : bool = True, byteArraySize : int = 65536) -> None:
+    def __init__(self, isLittleEndian : bool = True) -> None:
         self.isLittleEndian : bool = isLittleEndian
 
-        self.expandSize : int = byteArraySize
-
-        self._byteArray : bytearray = bytearray(byteArraySize)
+        self._byteArray : bytearray = bytearray()
 
         self._length : int = 0
 
-        self._position : int = 0
+        self.position : int = 0
 
         self._byteOrderString = "little" if self.isLittleEndian else "big"
 
@@ -28,29 +26,25 @@ class BinaryWriter:
         return bytes(self._byteArray[:self._length])
 
     def getPosition(self) -> int:
-        return self._position
+        return self.position
 
     def getLength(self) -> int:
         return self._length
 
     def seek(self, pos : int) -> None:
-        if (pos < 0 or pos > self._length):
-            raise IndexError("Position out of bounds")
-
-        self._position = pos
+        self.position = pos
 
     def seekOffset(self, offset : int) -> None:
-        self.seek(self._position + offset)
+        self.seek(self.position + offset)
 
     def writeBytes(self, data : bytes) -> None:
-        self._checkSize(len(data))
+        dataLength = len(data)
 
-        for i in range(len(data)):
-            self._byteArray[self._position + i] = data[i]
+        self._byteArray[self.position:self.position + dataLength] = data
 
-        self._position += len(data)
+        self.position += dataLength
 
-        self._length = max(self._length, self._position)
+        self._length = max(self._length, self.position)
 
     def writeSByte(self, value : int) -> None:
         valueBytes = value.to_bytes(data.dataSizes.SBYTE, byteorder = self._byteOrderString, signed = True)
@@ -111,15 +105,3 @@ class BinaryWriter:
         valueBytes = value.encode("utf-8")
 
         self.writeBytes(valueBytes)
-
-    def _checkSize(self, size : int) -> None:
-        requiredSize = size + self._position
-
-        if (requiredSize >= len(self._byteArray)):
-            self._expand(requiredSize)
-
-    def _expand(self, requiredSize : int) -> None:
-        newSize = len(self._byteArray) + self.expandSize
-
-        while (len(self._byteArray) < requiredSize):
-            self._byteArray.extend(bytearray(self.expandSize))

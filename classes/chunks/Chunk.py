@@ -24,22 +24,22 @@ class Chunk():
     def write(self, binaryWriter : Pure3DBinaryWriter) -> None:
         binaryWriter.writeUInt32(self.identifier)
 
-        dynamicFieldsPosition = binaryWriter.getPosition()
+        dynamicFieldsPosition = binaryWriter.position
 
         binaryWriter.writeUInt32(0) # Placeholder for dataSize
 
         binaryWriter.writeUInt32(0) # Placeholder for entireSize
 
-        beforeDataSize = binaryWriter.getPosition()
+        beforeDataSize = binaryWriter.position
         self.writeData(binaryWriter)
-        dataSize = binaryWriter.getPosition() - beforeDataSize
+        dataSize = binaryWriter.position - beforeDataSize
 
-        beforeChildrenSize = binaryWriter.getPosition()
+        beforeChildrenSize = binaryWriter.position
         for child in self.children:
             child.write(binaryWriter)
-        childrenSize = binaryWriter.getPosition() - beforeChildrenSize
+        childrenSize = binaryWriter.position - beforeChildrenSize
         
-        continuingPosition = binaryWriter.getPosition()
+        continuingPosition = binaryWriter.position
         binaryWriter.seek(dynamicFieldsPosition)
 
         binaryWriter.writeUInt32(12 + dataSize)
