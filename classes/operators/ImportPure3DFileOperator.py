@@ -317,9 +317,9 @@ class ImportedPure3DFile():
         for i in unsupported_chunk_types:
             chunkClass = defaultChunkRegistry.getClass(i)
             if chunkClass is UnknownChunk:
-                print(f"Unknown chunk type: { hex(chunk.identifier) }")
+                print(f"Unknown chunk type: { hex(i) }")
             else:
-                print(f"Unsupported chunk type: { hex(chunk.identifier) } ({chunkClass.__name__})")
+                print(f"Unsupported chunk type: { hex(i) } ({chunkClass.__name__})")
 
         #
         # Create File Collection
