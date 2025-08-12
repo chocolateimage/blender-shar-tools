@@ -6,6 +6,9 @@ import bpy
 import bpy_extras
 
 from classes.chunks.Chunk import Chunk
+from classes.chunks.CompositeDrawableChunk import CompositeDrawableChunk
+from classes.chunks.SkeletonChunk import SkeletonChunk
+from classes.chunks.SkeletonJointChunk import SkeletonJointChunk
 from classes.chunks.UnknownChunk import UnknownChunk
 from classes.chunks.FenceChunk import FenceChunk
 from classes.chunks.Fence2Chunk import Fence2Chunk
@@ -216,33 +219,21 @@ class ImportedPure3DFile():
         self.fileName = os.path.basename(filePath)
     
         self.fenceCollection : bpy.types.Collection = bpy.data.collections.new("Fences")
-
         self.pathCollection : bpy.types.Collection = bpy.data.collections.new("Paths")
-
         self.staticEntityCollection : bpy.types.Collection = bpy.data.collections.new("Static Entities")
-    
         self.collisionCollection : bpy.types.Collection = bpy.data.collections.new("Collisions")
-
         self.instancedCollection : bpy.types.Collection = bpy.data.collections.new("Instanced")
-
         self.scenegraphCollection : bpy.types.Collection = bpy.data.collections.new("Scenegraphs")
+        self.compositeDrawableCollection : bpy.types.Collection = bpy.data.collections.new("Composite Drawables")
 
         self.numberOfTextureChunksImported : int = 0
-
         self.numberOfShaderChunksImported : int = 0
-
         self.numberOfFenceChunksImported : int = 0
-
         self.numberOfPathChunksImported : int = 0
-
         self.numberOfStaticEntityChunksImported : int = 0
-
         self.numberOfCollisionsImported : int = 0
-
         self.numberOfInstancedImported : int = 0
-
         self.numberOfScenegraphsImported : int = 0
-
         self.numberOfUnsupportedChunksSkipped : int = 0
 
         self.stickyImages = []
@@ -308,6 +299,12 @@ class ImportedPure3DFile():
             elif isinstance(chunk, MeshChunk):
                 self.importMeshChunk(chunk)
 
+            elif isinstance(chunk, SkeletonChunk):
+                self.importSkeletonChunk(chunk)
+
+            elif isinstance(chunk, CompositeDrawableChunk):
+                self.importCompositeDrawableChunk(chunk)
+
             else:
                 if chunk.identifier not in unsupported_chunk_types:
                     unsupported_chunk_types.append(chunk.identifier)
@@ -360,6 +357,7 @@ class ImportedPure3DFile():
         fileCollection.children.link(self.collisionCollection)
         fileCollection.children.link(self.instancedCollection)
         fileCollection.children.link(self.scenegraphCollection)
+        fileCollection.children.link(self.compositeDrawableCollection)
         
         for collection in self.collectionsToHide:
             utils.get_layer_collection_from_collection(collection).hide_viewport = True
@@ -653,6 +651,37 @@ class ImportedPure3DFile():
             return
 
         MeshLib.createMesh(chunk)
+    
+    def importSkeletonChunk(self, chunk: SkeletonChunk):
+        armature = bpy.data.armatures.new(chunk.name)
+
+        # TODO: PLEASE someone find a better solution to this mess
+        temp_obj = bpy.data.objects.new("tempskeleton", armature)
+        bpy.context.scene.collection.objects.link(temp_obj)
+        bpy.context.view_layer.objects.active = temp_obj
+        bpy.ops.object.mode_set(mode="EDIT")
+
+        bones = []
+
+        for i in chunk.children:
+            if isinstance(i, SkeletonJointChunk):
+                bone = armature.edit_bones.new(i.name)
+                bones.append(bone)
+                bone.tail = mathutils.Vector((i.restPose[3][0], i.restPose[3][2], i.restPose[3][1]))
+                bone.head = (0,0,0)
+                bone.use_connect = True
+                bone.parent = bones[i.parent]
+
+        bpy.ops.object.mode_set(mode="OBJECT")
+        # bpy.data.objects.remove(temp_obj)
+        
+
+    def importCompositeDrawableChunk(self, chunk: CompositeDrawableChunk):
+        return
+        armature = bpy.data.armatures[chunk.skeletonName]
+        obj = bpy.data.objects.new(chunk.name, armature)
+
+        self.compositeDrawableCollection.objects.link(obj)
 
 
 def menu_item(self, context):
