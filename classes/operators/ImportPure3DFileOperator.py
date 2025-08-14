@@ -7,6 +7,8 @@ import bpy_extras
 
 from classes.chunks.Chunk import Chunk
 from classes.chunks.CompositeDrawableChunk import CompositeDrawableChunk
+from classes.chunks.CompositeDrawablePropChunk import CompositeDrawablePropChunk
+from classes.chunks.CompositeDrawablePropListChunk import CompositeDrawablePropListChunk
 from classes.chunks.SkeletonChunk import SkeletonChunk
 from classes.chunks.SkeletonJointChunk import SkeletonJointChunk
 from classes.chunks.UnknownChunk import UnknownChunk
@@ -41,6 +43,8 @@ from classes.chunks.GameAttrChunks import GameAttrChunk
 from classes.File import File
 
 from instances.defaultChunkRegistry import defaultChunkRegistry
+
+from data.matrices import MATRIX_SWAP
 
 import libs.fence as FenceLib
 import libs.image as ImageLib
@@ -238,6 +242,8 @@ class ImportedPure3DFile():
 
         self.stickyImages = []
         self.collectionsToHide = []
+        self.skeletons: dict[str, bpy.types.Object] = {}
+        self.skeletonJoints: dict[str, list[bpy.types.Object]] = {}
 
     def importChunks(self) -> None:
         #
@@ -653,35 +659,44 @@ class ImportedPure3DFile():
         MeshLib.createMesh(chunk)
     
     def importSkeletonChunk(self, chunk: SkeletonChunk):
-        armature = bpy.data.armatures.new(chunk.name)
+        skeleton_object = bpy.data.objects.new(chunk.name, None)
+        self.compositeDrawableCollection.objects.link(skeleton_object)
 
-        # TODO: PLEASE someone find a better solution to this mess
-        temp_obj = bpy.data.objects.new("tempskeleton", armature)
-        bpy.context.scene.collection.objects.link(temp_obj)
-        bpy.context.view_layer.objects.active = temp_obj
-        bpy.ops.object.mode_set(mode="EDIT")
+        self.skeletons[chunk.name] = skeleton_object
+        self.skeletonJoints[chunk.name] = []
 
-        bones = []
+        joints = []
 
         for i in chunk.children:
             if isinstance(i, SkeletonJointChunk):
-                bone = armature.edit_bones.new(i.name)
-                bones.append(bone)
-                bone.tail = mathutils.Vector((i.restPose[3][0], i.restPose[3][2], i.restPose[3][1]))
-                bone.head = (0,0,0)
-                bone.use_connect = True
-                bone.parent = bones[i.parent]
+                index = len(joints)
 
-        bpy.ops.object.mode_set(mode="OBJECT")
-        # bpy.data.objects.remove(temp_obj)
-        
+                joint = bpy.data.objects.new(i.name, None)
+                self.compositeDrawableCollection.objects.link(joint)
+
+                joint.matrix_local = MATRIX_SWAP @ i.restPose.transposed() @ MATRIX_SWAP
+
+                if index == i.parent:
+                    joint.parent = skeleton_object
+                else:
+                    joint.parent = joints[i.parent]
+
+                joints.append(joint)
+
+                self.skeletonJoints[chunk.name].append(joint)
 
     def importCompositeDrawableChunk(self, chunk: CompositeDrawableChunk):
-        return
-        armature = bpy.data.armatures[chunk.skeletonName]
-        obj = bpy.data.objects.new(chunk.name, armature)
+        propList: CompositeDrawablePropListChunk = chunk.getFirstChildOfType(CompositeDrawablePropListChunk)
 
-        self.compositeDrawableCollection.objects.link(obj)
+        for propChunk in propList.children:
+            propChunk: CompositeDrawablePropChunk
+            if propChunk.name in bpy.data.meshes:
+                mesh = bpy.data.meshes[propChunk.name]
+
+                meshObject = bpy.data.objects.new(propChunk.name, mesh)
+                meshObject.parent = self.skeletonJoints[chunk.skeletonName][propChunk.skeletonJointId]
+
+                self.compositeDrawableCollection.objects.link(meshObject)
 
 
 def menu_item(self, context):
