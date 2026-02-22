@@ -322,6 +322,9 @@ class ImportedPure3DFile():
             elif isinstance(chunk, AnimChunk):
                 self.importAnimChunk(chunk)
 
+            elif isinstance(chunk, OldFrameController):
+                self.importOldFrameController(chunk)
+
             else:
                 if chunk.identifier not in unsupported_chunk_types:
                     unsupported_chunk_types.append(chunk.identifier)
@@ -726,16 +729,19 @@ class ImportedPure3DFile():
             objects.extend(self.importCompositeDrawableChunk(cdc))
         
         for controller in chunk.getChildrenOfType(OldFrameController):
-            if controller.type == AnimationTypes.POSE_TRANSFORM:
-                for obj in objects:
-                    joint = obj.parent
-                    action: bpy.types.Action = bpy.data.actions.get(f"{controller.animationName}.{joint.name}")
-                    if action is None:
-                        continue
+            self.importOldFrameController(controller)
+    
+    def importOldFrameController(self, chunk: OldFrameController):
+        if chunk.type == AnimationTypes.POSE_TRANSFORM:
+            objects = self.skeletonJoints[chunk.hierarchyName]
+            for joint in objects:
+                action: bpy.types.Action = bpy.data.actions.get(f"{chunk.animationName}.{joint.name}")
+                if action is None:
+                    continue
 
-                    animationData = joint.animation_data_create()
-                    animationData.action = action
-                    animationData.action_slot = action.slots[0]
+                animationData = joint.animation_data_create()
+                animationData.action = action
+                animationData.action_slot = action.slots[0]
 
 def menu_item(self, context):
     self.layout.operator(ImportPure3DFileOperator.bl_idname, text = "Pure3D File (.p3d)")

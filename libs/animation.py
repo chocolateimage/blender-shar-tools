@@ -3,8 +3,10 @@ import bpy
 from classes.chunks.AnimationChunk import AnimationChunk
 from classes.chunks.AnimationGroupChunk import AnimationGroupChunk
 from classes.chunks.AnimationGroupListChunk import AnimationGroupListChunk
+from classes.chunks.CompressedQuaternionChannelChunk import CompressedQuaternionChannelChunk
 from classes.chunks.QuaternionChannelChunk import QuaternionChannelChunk
 from classes.chunks.Vector1DOFChannelChunk import Vector1DOFChannelChunk
+from classes.chunks.Vector2DOFChannelChunk import Vector2DOFChannelChunk
 from classes.chunks.Vector3DOFChannelChunk import Vector3DOFChannelChunk
 from data.matrices import MATRIX_SWAP
 
@@ -49,7 +51,16 @@ def createAnimation(animationChunk: AnimationChunk):
                     strip.key_insert(slot, dataPath, 0, vector.x, frame * frameMultiplier)
                     strip.key_insert(slot, dataPath, 1, vector.z, frame * frameMultiplier)
                     strip.key_insert(slot, dataPath, 2, vector.y, frame * frameMultiplier)
-            elif type(channel) is QuaternionChannelChunk:
+            elif type(channel) is Vector2DOFChannelChunk:
+                vector = channel.constants.copy()
+                indicies = ((1,2),(0,2),(0,1))[channel.mapping]
+                for frame, value in zip(channel.frames, channel.values):
+                    vector[indicies[0]] = value.x
+                    vector[indicies[1]] = value.y
+                    strip.key_insert(slot, dataPath, 0, vector.x, frame * frameMultiplier)
+                    strip.key_insert(slot, dataPath, 1, vector.z, frame * frameMultiplier)
+                    strip.key_insert(slot, dataPath, 2, vector.y, frame * frameMultiplier)
+            elif type(channel) is QuaternionChannelChunk or type(channel) is CompressedQuaternionChannelChunk:
                 for frame, value in zip(channel.frames, channel.values):
                     matrix = value.to_matrix().to_4x4()
                     matrix = MATRIX_SWAP @ matrix @ MATRIX_SWAP.inverted()

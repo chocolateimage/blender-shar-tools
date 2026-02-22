@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from classes.chunks.AnimChunk import AnimChunk
+from classes.chunks.CompressedQuaternionChannelChunk import CompressedQuaternionChannelChunk
 from classes.chunks.Fence2Chunk import Fence2Chunk
 from classes.chunks.FenceChunk import FenceChunk
 from classes.chunks.HistoryChunk import HistoryChunk
@@ -23,6 +24,7 @@ from classes.chunks.TextureChunk import TextureChunk
 from classes.chunks.UVListChunk import UVListChunk
 from classes.chunks.ColourListChunk import ColourListChunk
 from classes.chunks.Vector1DOFChannelChunk import Vector1DOFChannelChunk
+from classes.chunks.Vector2DOFChannelChunk import Vector2DOFChannelChunk
 from classes.chunks.VertexShaderChunk import VertexShaderChunk
 from classes.chunks.BoundingBoxChunk import BoundingBoxChunk
 from classes.chunks.BoundingSphereChunk import BoundingSphereChunk
@@ -190,7 +192,9 @@ defaultChunkRegistry.register(chunkIdentifiers.ANIMATION_SIZE, AnimationSizeChun
 defaultChunkRegistry.register(chunkIdentifiers.ANIMATION_GROUP_LIST, AnimationGroupListChunk)
 defaultChunkRegistry.register(chunkIdentifiers.ANIMATION_GROUP, AnimationGroupChunk)
 defaultChunkRegistry.register(chunkIdentifiers.VECTOR_1D_OF_CHANNEL, Vector1DOFChannelChunk)
+defaultChunkRegistry.register(chunkIdentifiers.VECTOR_2D_OF_CHANNEL, Vector2DOFChannelChunk)
 defaultChunkRegistry.register(chunkIdentifiers.VECTOR_3D_OF_CHANNEL, Vector3DOFChannelChunk)
 defaultChunkRegistry.register(chunkIdentifiers.QUATERNION_CHANNEL, QuaternionChannelChunk)
+defaultChunkRegistry.register(chunkIdentifiers.COMPRESSED_QUATERNION_CHANNEL, CompressedQuaternionChannelChunk)
 defaultChunkRegistry.register(chunkIdentifiers.ANIM, AnimChunk)
 defaultChunkRegistry.register(chunkIdentifiers.OLD_FRAME_CONTROLLER, OldFrameController)

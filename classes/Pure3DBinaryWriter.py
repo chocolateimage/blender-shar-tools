@@ -118,3 +118,9 @@ class Pure3DBinaryWriter(BinaryWriter):
         self.writeFloat(quaternion.x)
         self.writeFloat(quaternion.y)
         self.writeFloat(quaternion.z)
+
+    def writePure3DCompressedQuaternion(self, quaternion: mathutils.Quaternion) -> None:
+        self.writeInt16(int(quaternion.w * 32767))
+        self.writeInt16(int(quaternion.x * 32767))
+        self.writeInt16(int(quaternion.y * 32767))
+        self.writeInt16(int(quaternion.z * 32767))
