@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from classes.chunks.AnimChunk import AnimChunk
 from classes.chunks.Fence2Chunk import Fence2Chunk
 from classes.chunks.FenceChunk import FenceChunk
 from classes.chunks.HistoryChunk import HistoryChunk
@@ -7,9 +8,11 @@ from classes.chunks.ImageChunk import ImageChunk
 from classes.chunks.ImageDataChunk import ImageDataChunk
 from classes.chunks.IndexListChunk import IndexListChunk
 from classes.chunks.MeshChunk import MeshChunk
+from classes.chunks.OldFrameControllerChunk import OldFrameController
 from classes.chunks.OldPrimitiveGroupChunk import OldPrimitiveGroupChunk
 from classes.chunks.PathChunk import PathChunk
 from classes.chunks.PositionListChunk import PositionListChunk
+from classes.chunks.QuaternionChannelChunk import QuaternionChannelChunk
 from classes.chunks.ShaderChunk import ShaderChunk
 from classes.chunks.ShaderColourParameterChunk import ShaderColourParameterChunk
 from classes.chunks.ShaderFloatParameterChunk import ShaderFloatParameterChunk
@@ -19,6 +22,7 @@ from classes.chunks.StaticEntityChunk import StaticEntityChunk
 from classes.chunks.TextureChunk import TextureChunk
 from classes.chunks.UVListChunk import UVListChunk
 from classes.chunks.ColourListChunk import ColourListChunk
+from classes.chunks.Vector1DOFChannelChunk import Vector1DOFChannelChunk
 from classes.chunks.VertexShaderChunk import VertexShaderChunk
 from classes.chunks.BoundingBoxChunk import BoundingBoxChunk
 from classes.chunks.BoundingSphereChunk import BoundingSphereChunk
@@ -57,6 +61,11 @@ from classes.chunks.CompositeDrawableSortOrderChunk import CompositeDrawableSort
 from classes.chunks.CompositeDrawablePropChunk import CompositeDrawablePropChunk
 from classes.chunks.SkeletonChunk import SkeletonChunk
 from classes.chunks.SkeletonJointChunk import SkeletonJointChunk
+from classes.chunks.AnimationChunk import AnimationChunk
+from classes.chunks.AnimationSizeChunk import AnimationSizeChunk
+from classes.chunks.AnimationGroupListChunk import AnimationGroupListChunk
+from classes.chunks.AnimationGroupChunk import AnimationGroupChunk
+from classes.chunks.Vector3DOFChannelChunk import Vector3DOFChannelChunk
 
 from classes.ChunkRegistry import ChunkRegistry
 
@@ -175,3 +184,13 @@ defaultChunkRegistry.register(chunkIdentifiers.COMPOSITE_DRAWABLE_PROP, Composit
 
 defaultChunkRegistry.register(chunkIdentifiers.SKELETON, SkeletonChunk)
 defaultChunkRegistry.register(chunkIdentifiers.SKELETON_JOINT, SkeletonJointChunk)
+
+defaultChunkRegistry.register(chunkIdentifiers.ANIMATION, AnimationChunk)
+defaultChunkRegistry.register(chunkIdentifiers.ANIMATION_SIZE, AnimationSizeChunk)
+defaultChunkRegistry.register(chunkIdentifiers.ANIMATION_GROUP_LIST, AnimationGroupListChunk)
+defaultChunkRegistry.register(chunkIdentifiers.ANIMATION_GROUP, AnimationGroupChunk)
+defaultChunkRegistry.register(chunkIdentifiers.VECTOR_1D_OF_CHANNEL, Vector1DOFChannelChunk)
+defaultChunkRegistry.register(chunkIdentifiers.VECTOR_3D_OF_CHANNEL, Vector3DOFChannelChunk)
+defaultChunkRegistry.register(chunkIdentifiers.QUATERNION_CHANNEL, QuaternionChannelChunk)
+defaultChunkRegistry.register(chunkIdentifiers.ANIM, AnimChunk)
+defaultChunkRegistry.register(chunkIdentifiers.OLD_FRAME_CONTROLLER, OldFrameController)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Type, TypeVar
 
 from classes.Pure3DBinaryReader import Pure3DBinaryReader
 from classes.Pure3DBinaryWriter import Pure3DBinaryWriter
@@ -51,14 +52,14 @@ class Chunk():
     def writeData(self, binaryWriter : Pure3DBinaryWriter) -> None:
         pass
 
-    def getFirstChildOfType(self, type) -> Chunk:
+    def getFirstChildOfType(self, type: Type[T]) -> T | None:
         for chunk in self.children:
             if isinstance(chunk, type):
                 return chunk
 
         return None
 
-    def getChildrenOfType(self, type) -> list[Chunk]:
+    def getChildrenOfType(self, type: Type[T]) -> list[T]:
         children = []
 
         for chunk in self.children:
@@ -66,3 +67,5 @@ class Chunk():
                 children.append(chunk)
 
         return children
+
+T = TypeVar("T", bound=Chunk)

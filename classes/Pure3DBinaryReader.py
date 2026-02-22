@@ -76,6 +76,14 @@ class Pure3DBinaryReader(BinaryReader):
 
         return mathutils.Vector((x, y, z))
 
+    def readPure3DQuaternion(self) -> mathutils.Quaternion:
+        w = self.readFloat()
+        x = self.readFloat()
+        y = self.readFloat()
+        z = self.readFloat()
+
+        return mathutils.Quaternion((w, x, y, z))
+
     def readSymmetricMatrix3x3(self) -> SymmetricMatrix3x3:
         xx = self.readFloat()
 

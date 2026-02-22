@@ -112,3 +112,9 @@ class Pure3DBinaryWriter(BinaryWriter):
         self.writeFloat(vector3.y)
 
         self.writeFloat(vector3.z)
+
+    def writePure3DQuaternion(self, quaternion: mathutils.Quaternion) -> None:
+        self.writeFloat(quaternion.w)
+        self.writeFloat(quaternion.x)
+        self.writeFloat(quaternion.y)
+        self.writeFloat(quaternion.z)

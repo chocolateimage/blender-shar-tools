@@ -5,10 +5,13 @@ import os
 import bpy
 import bpy_extras
 
+from classes.chunks.AnimChunk import AnimChunk
+from classes.chunks.AnimationChunk import AnimationChunk
 from classes.chunks.Chunk import Chunk
 from classes.chunks.CompositeDrawableChunk import CompositeDrawableChunk
 from classes.chunks.CompositeDrawablePropChunk import CompositeDrawablePropChunk
 from classes.chunks.CompositeDrawablePropListChunk import CompositeDrawablePropListChunk
+from classes.chunks.OldFrameControllerChunk import OldFrameController
 from classes.chunks.SkeletonChunk import SkeletonChunk
 from classes.chunks.SkeletonJointChunk import SkeletonJointChunk
 from classes.chunks.UnknownChunk import UnknownChunk
@@ -42,6 +45,7 @@ from classes.chunks.GameAttrChunks import GameAttrChunk
 
 from classes.File import File
 
+from data.animationTypes import AnimationTypes
 from instances.defaultChunkRegistry import defaultChunkRegistry
 
 from data.matrices import MATRIX_SWAP
@@ -52,6 +56,7 @@ import libs.mesh as MeshLib
 import libs.message as MessageLib
 import libs.path as PathLib
 import libs.collision as CollisionLib
+import libs.animation as AnimationLib
 
 import mathutils
 
@@ -213,7 +218,7 @@ class RawImportPure3DFileOperator(bpy.types.Operator):
         return {"FINISHED"}
 
 class ImportedPure3DFile():
-    def __init__(self, importPure3DFileOperator : ImportPure3DFileOperator, filePath : str, chunks : list[Chunk]):
+    def __init__(self, importPure3DFileOperator: ImportPure3DFileOperator, filePath: str, chunks: list[Chunk]):
         self.importPure3DFileOperator = importPure3DFileOperator
 
         self.chunks = chunks
@@ -222,23 +227,23 @@ class ImportedPure3DFile():
         
         self.fileName = os.path.basename(filePath)
     
-        self.fenceCollection : bpy.types.Collection = bpy.data.collections.new("Fences")
-        self.pathCollection : bpy.types.Collection = bpy.data.collections.new("Paths")
-        self.staticEntityCollection : bpy.types.Collection = bpy.data.collections.new("Static Entities")
-        self.collisionCollection : bpy.types.Collection = bpy.data.collections.new("Collisions")
-        self.instancedCollection : bpy.types.Collection = bpy.data.collections.new("Instanced")
-        self.scenegraphCollection : bpy.types.Collection = bpy.data.collections.new("Scenegraphs")
-        self.compositeDrawableCollection : bpy.types.Collection = bpy.data.collections.new("Composite Drawables")
+        self.fenceCollection: bpy.types.Collection = bpy.data.collections.new("Fences")
+        self.pathCollection: bpy.types.Collection = bpy.data.collections.new("Paths")
+        self.staticEntityCollection: bpy.types.Collection = bpy.data.collections.new("Static Entities")
+        self.collisionCollection: bpy.types.Collection = bpy.data.collections.new("Collisions")
+        self.instancedCollection: bpy.types.Collection = bpy.data.collections.new("Instanced")
+        self.scenegraphCollection: bpy.types.Collection = bpy.data.collections.new("Scenegraphs")
+        self.compositeDrawableCollection: bpy.types.Collection = bpy.data.collections.new("Composite Drawables")
 
-        self.numberOfTextureChunksImported : int = 0
-        self.numberOfShaderChunksImported : int = 0
-        self.numberOfFenceChunksImported : int = 0
-        self.numberOfPathChunksImported : int = 0
-        self.numberOfStaticEntityChunksImported : int = 0
-        self.numberOfCollisionsImported : int = 0
-        self.numberOfInstancedImported : int = 0
-        self.numberOfScenegraphsImported : int = 0
-        self.numberOfUnsupportedChunksSkipped : int = 0
+        self.numberOfTextureChunksImported: int = 0
+        self.numberOfShaderChunksImported: int = 0
+        self.numberOfFenceChunksImported: int = 0
+        self.numberOfPathChunksImported: int = 0
+        self.numberOfStaticEntityChunksImported: int = 0
+        self.numberOfCollisionsImported: int = 0
+        self.numberOfInstancedImported: int = 0
+        self.numberOfScenegraphsImported: int = 0
+        self.numberOfUnsupportedChunksSkipped: int = 0
 
         self.stickyImages = []
         self.collectionsToHide = []
@@ -311,6 +316,12 @@ class ImportedPure3DFile():
             elif isinstance(chunk, CompositeDrawableChunk):
                 self.importCompositeDrawableChunk(chunk)
 
+            elif isinstance(chunk, AnimationChunk):
+                self.importAnimationChunk(chunk)
+
+            elif isinstance(chunk, AnimChunk):
+                self.importAnimChunk(chunk)
+
             else:
                 if chunk.identifier not in unsupported_chunk_types:
                     unsupported_chunk_types.append(chunk.identifier)
@@ -343,7 +354,7 @@ class ImportedPure3DFile():
             directoryName = os.path.basename(currentTraversal)
             if directoryName == "art":
                 if os.path.exists(os.path.join(parentDirectory, "Simpsons.exe")):
-                    print("Converting exporter path " + self.filePath + " to " + self.fileName + " because it can lead game files to be accidentally overriden.")
+                    print("Converting exporter path " + self.filePath + " to " + self.fileName + " because it can lead game files to be accidentally overridden.")
                     exporterFilePath = self.fileName
                     break
             elif currentTraversal == parentDirectory:
@@ -516,11 +527,11 @@ class ImportedPure3DFile():
                 color_rgb = (childChunk.colour.red / 255,childChunk.colour.green / 255,childChunk.colour.blue / 255)
                 if childChunk.parameter == "DIFF":
                     bsdf.inputs["Base Color"].default_value = color_argb
-                    material.shaderProperties.diffuseColor = color_rgb # Specular
+                    material.shaderProperties.diffuseColor = color_rgb
                 elif childChunk.parameter == "SPEC":
-                    material.shaderProperties.specularColor = color_rgb # Specular
+                    material.shaderProperties.specularColor = color_rgb
                 elif childChunk.parameter == "AMBI":
-                    material.shaderProperties.ambientColor = color_rgb # Ambient
+                    material.shaderProperties.ambientColor = color_rgb
                 elif childChunk.parameter == "EMIS":
                     bsdf.inputs["Emission Color"].default_value = color_argb
                     bsdf.inputs["Emission Strength"].default_value = 0
@@ -671,10 +682,11 @@ class ImportedPure3DFile():
             if isinstance(i, SkeletonJointChunk):
                 index = len(joints)
 
-                joint = bpy.data.objects.new(i.name, None)
+                joint: bpy.types.Object = bpy.data.objects.new(i.name, None)
                 self.compositeDrawableCollection.objects.link(joint)
 
                 joint.matrix_local = MATRIX_SWAP @ i.restPose.transposed() @ MATRIX_SWAP
+                joint.rotation_mode = "QUATERNION"
 
                 if index == i.parent:
                     joint.parent = skeleton_object
@@ -688,16 +700,42 @@ class ImportedPure3DFile():
     def importCompositeDrawableChunk(self, chunk: CompositeDrawableChunk):
         propList: CompositeDrawablePropListChunk = chunk.getFirstChildOfType(CompositeDrawablePropListChunk)
 
+        objects: list[bpy.types.Object] = []
         for propChunk in propList.children:
             propChunk: CompositeDrawablePropChunk
             if propChunk.name in bpy.data.meshes:
                 mesh = bpy.data.meshes[propChunk.name]
 
-                meshObject = bpy.data.objects.new(propChunk.name, mesh)
+                meshObject: bpy.types.Object = bpy.data.objects.new(propChunk.name, mesh)
                 meshObject.parent = self.skeletonJoints[chunk.skeletonName][propChunk.skeletonJointId]
 
                 self.compositeDrawableCollection.objects.link(meshObject)
 
+                objects.append(meshObject)
+            else:
+                print(f"Unknown composite drawable prop {propChunk.name}")
+        
+        return objects
+
+    def importAnimationChunk(self, chunk: AnimationChunk):
+        AnimationLib.createAnimation(chunk)
+    
+    def importAnimChunk(self, chunk: AnimChunk):
+        objects: list[bpy.types.Object] = []
+        for cdc in chunk.getChildrenOfType(CompositeDrawableChunk):
+            objects.extend(self.importCompositeDrawableChunk(cdc))
+        
+        for controller in chunk.getChildrenOfType(OldFrameController):
+            if controller.type == AnimationTypes.POSE_TRANSFORM:
+                for obj in objects:
+                    joint = obj.parent
+                    action: bpy.types.Action = bpy.data.actions.get(f"{controller.animationName}.{joint.name}")
+                    if action is None:
+                        continue
+
+                    animationData = joint.animation_data_create()
+                    animationData.action = action
+                    animationData.action_slot = action.slots[0]
 
 def menu_item(self, context):
     self.layout.operator(ImportPure3DFileOperator.bl_idname, text = "Pure3D File (.p3d)")
