@@ -477,6 +477,8 @@ class ImportedPure3DFile():
 
         material.use_nodes = True
 
+        material.use_backface_culling = False
+
         material.shaderProperties.pddiShader = chunk.pddiShaderName
         
         bsdf = material.node_tree.nodes["Principled BSDF"]
@@ -544,7 +546,6 @@ class ImportedPure3DFile():
             elif isinstance(childChunk, ShaderIntegerParameterChunk):
                 if childChunk.parameter == "2SID":
                     material.shaderProperties.twoSided = childChunk.value
-                    material.use_backface_culling = not childChunk.value
                 elif childChunk.parameter == "LIT":
                     material.shaderProperties.lighting = childChunk.value == 1
                 elif childChunk.parameter == "ATST":

@@ -24,9 +24,6 @@ def update_shader_properties(self, context: bpy.types.Context):
         mat.blend_method = "OPAQUE"
         if hasattr(mat, "shadow_method"):
             mat.shadow_method = "OPAQUE"
-    
-    mat.use_backface_culling = not mat.shaderProperties.twoSided
-
 
 class ShaderProperties(bpy.types.PropertyGroup):
     pddiShader: bpy.props.EnumProperty(
