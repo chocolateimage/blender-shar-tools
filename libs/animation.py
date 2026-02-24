@@ -71,5 +71,13 @@ def createAnimation(animationChunk: AnimationChunk):
                     strip.key_insert(slot, dataPath, 3, quat.z, frame * frameMultiplier)
             else:
                 print(f"Unknown channel type in {group.name}")
+        
+        for channelbag in strip.channelbags:
+            channelbag: bpy.types.ActionChannelbag
+            for fcurve in channelbag.fcurves:
+                fcurve: bpy.types.FCurve
+                for keyframePoint in fcurve.keyframe_points:
+                    keyframePoint: bpy.types.Keyframe
+                    keyframePoint.interpolation = "LINEAR"
 
     return actions
