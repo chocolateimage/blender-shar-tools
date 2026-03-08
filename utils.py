@@ -23,6 +23,23 @@ def get_layer_collection_from_collection(collection: bpy.types.Collection, layer
 
     return None
 
+def find_p3d_collection_from_object(object: bpy.types.Object):
+    for collection in bpy.data.collections:
+        collection: bpy.types.Collection
+        if not get_basename(collection.name).endswith(".p3d"):
+            continue
+
+        if object.name in collection.all_objects:
+            return collection
+        
+    return None
+
+def find_collection_in_collection(name: str, collection: bpy.types.Collection):
+    for child in collection.children:
+        if get_basename(child.name) == name:
+            return child
+    return None
+
 def layout_wrapped_label(layout: bpy.types.UILayout, context: bpy.types.Context, text: str):
     width = context.region.width
 

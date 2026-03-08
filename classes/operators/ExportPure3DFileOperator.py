@@ -363,35 +363,38 @@ class ExportedPure3DFile():
                     self.chunks.append(PathChunk(
                         points = points
                     ))
-            elif collectionBasename == "Static Entities":
-                for obj in childCollection.objects:
-                    mesh = obj.data
-                    hasAlpha = 0
-                    for mat in mesh.materials:
-                        self.exportShader(mat)
-                        shaderProperties: ShaderProperties = mat.shaderProperties
-                        if shaderProperties.blendMode == "alpha" or shaderProperties.alphaTest:
-                            hasAlpha = 1
-
-                    chunk = MeshLib.meshToChunk(mesh, obj)
-                    if "track" in obj.name or "polySurfaceShape" in obj.name:
-                        self.addAsInterset(mesh)
-
-                    self.chunks.append(StaticEntityChunk(
-                        version = 0,
-                        hasAlpha = hasAlpha,
-                        name = obj.name,
-                        children = [
-                            chunk
-                        ]
-                    ))
-            elif collectionBasename == "Collisions":
+            elif collectionBasename == "Terrain":
                 collisionGroups = {}
-                for obj in childCollection.all_objects:
+
+                for obj in childCollection.objects:
                     baseName = utils.get_basename(obj.name)
-                    if baseName not in collisionGroups:
-                        collisionGroups[baseName] = []
-                    collisionGroups[baseName].append(obj)
+
+                    if baseName.endswith("_COL"):
+                        colName = baseName.removesuffix("_COL")
+                        if colName not in collisionGroups:
+                            collisionGroups[colName] = []
+                        collisionGroups[colName].append(obj)
+                    else:
+                        mesh = obj.data
+                        hasAlpha = 0
+                        for mat in mesh.materials:
+                            self.exportShader(mat)
+                            shaderProperties: ShaderProperties = mat.shaderProperties
+                            if shaderProperties.blendMode == "alpha" or shaderProperties.alphaTest:
+                                hasAlpha = 1
+
+                        chunk = MeshLib.meshToChunk(mesh, obj)
+                        if "track" in obj.name or "polySurfaceShape" in obj.name:
+                            self.addAsInterset(mesh)
+
+                        self.chunks.append(StaticEntityChunk(
+                            version = 0,
+                            hasAlpha = hasAlpha,
+                            name = baseName,
+                            children = [
+                                chunk
+                            ]
+                        ))
                 
                 for groupName, group in collisionGroups.items():
                     collisionChildren = CollisionLib.collisionsToChunks(groupName, group)
@@ -401,6 +404,7 @@ class ExportedPure3DFile():
                             children = collisionChildren
                         )
                     )
+
             elif collectionBasename == "Instanced":
                 for instancedCollection in childCollection.children:
                     alreadyExportedMeshes = {}
