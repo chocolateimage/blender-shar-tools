@@ -117,7 +117,7 @@ def createFromVolume(collisionObject: CollisionObjectChunk, collisionVolume: Col
             for collection in obj.users_collection:
                 collection.objects.unlink(obj)
 
-            obj.name = collisionObject.name
+            obj.name = collisionObject.name + "_COL"
 
             obj.matrix_world = matrix2
             obj.location = obj.location.xzy
@@ -133,7 +133,7 @@ def createFromVolume(collisionObject: CollisionObjectChunk, collisionVolume: Col
             for collection in obj.users_collection:
                 collection.objects.unlink(obj)
 
-            obj.name = collisionObject.name
+            obj.name = collisionObject.name + "_COL"
 
             z_axis = mathutils.Vector((0,0,1))
             obj.matrix_world = mathutils.Matrix.Rotation(
@@ -155,7 +155,7 @@ def createFromVolume(collisionObject: CollisionObjectChunk, collisionVolume: Col
             for collection in obj.users_collection:
                 collection.objects.unlink(obj)
 
-            obj.name = collisionObject.name
+            obj.name = collisionObject.name + "_COL"
 
             obj.location = centerChunk.vector.xzy
 

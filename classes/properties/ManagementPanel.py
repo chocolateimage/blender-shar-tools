@@ -15,8 +15,9 @@ class OBJECT_PT_sharmanagement_panel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        utils.layout_wrapped_label(layout,context,"P3D files are collections stored in the scene")
-        layout.operator(OBJECT_OT_sharmanagment_add_p3d.bl_idname)
+        box = layout.box()
+        utils.layout_wrapped_label(box, context,"P3D files are collections stored in the scene")
+        box.operator(OBJECT_OT_sharmanagment_add_p3d.bl_idname)
 
 class OBJECT_OT_sharmanagment_add_p3d(bpy.types.Operator):
     bl_idname = "object.sharmanagement_add_p3d"

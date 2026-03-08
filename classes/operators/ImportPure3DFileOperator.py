@@ -82,30 +82,20 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
     option_import_shaders: bpy.props.BoolProperty(name = "Import Shaders", description = "Import Shader chunks from the Pure3D File(s)", default = True)
     option_import_fences: bpy.props.BoolProperty(name = "Import Fences", description = "Import Fence chunks from the Pure3D File(s)", default = True)
     option_import_paths: bpy.props.BoolProperty(name = "Import Paths", description = "Import Path chunks from the Pure3D File(s)", default = True)
-    option_import_static_entities: bpy.props.BoolProperty(name = "Import Static Entities", description = "Import StaticEntity chunks from the Pure3D File(s)", default = True)
+    option_import_entities: bpy.props.BoolProperty(name = "Import Entities", description = "Import StaticEntity, InstStatEntity, InstStatPhys and DynaPhys chunks from the Pure3D File(s)", default = True)
     option_import_collisions: bpy.props.BoolProperty(name = "Import Collisions", description = "Import StaticPhys chunks from the Pure3D File(s)", default = True)
-    option_import_instanced: bpy.props.BoolProperty(name = "Import Instanced Chunks", description = "Import InstStatEntity, InstStatPhys and DynaPhys chunks from the Pure3D File(s)", default = True)
     option_import_scenegraphs: bpy.props.BoolProperty(name = "Import Scenegraph Chunks", description = "Import Scenegraph chunks from the Pure3D File(s)", default = True)
 
     option_simple_shader_import: bpy.props.BoolProperty(name = "Simple Shaders", description = "Import shaders without vertex colors", default = False)
 
     def draw(self, context):
         self.layout.prop(self, "option_import_textures")
-
         self.layout.prop(self, "option_import_shaders")
-
         self.layout.prop(self, "option_import_fences")
-
         self.layout.prop(self, "option_import_paths")
-
-        self.layout.prop(self, "option_import_static_entities")
-
+        self.layout.prop(self, "option_import_entities")
         self.layout.prop(self, "option_import_collisions")
-
-        self.layout.prop(self, "option_import_instanced")
-
         self.layout.prop(self, "option_import_scenegraphs")
-
         self.layout.prop(self, "option_simple_shader_import")
 
     def execute(self, context):
@@ -168,14 +158,11 @@ class ImportPure3DFileOperator(bpy.types.Operator, bpy_extras.io_utils.ImportHel
             if importedPure3DFile.numberOfPathChunksImported > 0:
                 messageLines.append(f"\t- Number of Paths: { importedPure3DFile.numberOfPathChunksImported }")
 
-            if importedPure3DFile.numberOfStaticEntityChunksImported > 0:
-                messageLines.append(f"\t- Number of Static Entities: { importedPure3DFile.numberOfStaticEntityChunksImported }")
+            if importedPure3DFile.numberOfEntitiesImported > 0:
+                messageLines.append(f"\t- Number of Entities: { importedPure3DFile.numberOfEntitiesImported }")
 
             if importedPure3DFile.numberOfCollisionsImported > 0:
                 messageLines.append(f"\t- Number of Collisions: { importedPure3DFile.numberOfCollisionsImported }")
-
-            if importedPure3DFile.numberOfInstancedImported > 0:
-                messageLines.append(f"\t- Number of Instanced Chunks: { importedPure3DFile.numberOfInstancedImported }")
 
             if importedPure3DFile.numberOfScenegraphsImported > 0:
                 messageLines.append(f"\t- Number of Scenegraph Chunks: { importedPure3DFile.numberOfScenegraphsImported }")
@@ -229,9 +216,8 @@ class ImportedPure3DFile():
     
         self.fenceCollection: bpy.types.Collection = bpy.data.collections.new("Fences")
         self.pathCollection: bpy.types.Collection = bpy.data.collections.new("Paths")
-        self.staticEntityCollection: bpy.types.Collection = bpy.data.collections.new("Static Entities")
-        self.collisionCollection: bpy.types.Collection = bpy.data.collections.new("Collisions")
-        self.instancedCollection: bpy.types.Collection = bpy.data.collections.new("Instanced")
+        self.terrainCollection: bpy.types.Collection = bpy.data.collections.new("Terrain")
+        self.entityCollection: bpy.types.Collection = bpy.data.collections.new("Entities")
         self.scenegraphCollection: bpy.types.Collection = bpy.data.collections.new("Scenegraphs")
         self.compositeDrawableCollection: bpy.types.Collection = bpy.data.collections.new("Composite Drawables")
 
@@ -239,9 +225,8 @@ class ImportedPure3DFile():
         self.numberOfShaderChunksImported: int = 0
         self.numberOfFenceChunksImported: int = 0
         self.numberOfPathChunksImported: int = 0
-        self.numberOfStaticEntityChunksImported: int = 0
+        self.numberOfEntitiesImported: int = 0
         self.numberOfCollisionsImported: int = 0
-        self.numberOfInstancedImported: int = 0
         self.numberOfScenegraphsImported: int = 0
         self.numberOfUnsupportedChunksSkipped: int = 0
 
@@ -277,7 +262,7 @@ class ImportedPure3DFile():
                     self.importShaderChunk(chunk)
 
             elif isinstance(chunk, StaticEntityChunk):
-                if getattr(self.importPure3DFileOperator, "option_import_static_entities", True):
+                if getattr(self.importPure3DFileOperator, "option_import_entities", True):
                     self.importStaticEntityChunk(chunk)
 
             elif isinstance(chunk, TextureChunk):
@@ -289,15 +274,15 @@ class ImportedPure3DFile():
                     self.importStaticPhysChunk(chunk)
 
             elif isinstance(chunk, InstStatEntityChunk):
-                if getattr(self.importPure3DFileOperator, "option_import_instanced", True):
+                if getattr(self.importPure3DFileOperator, "option_import_entities", True):
                     self.importInstancedChunk(chunk)
 
             elif isinstance(chunk, InstStatPhysChunk):
-                if getattr(self.importPure3DFileOperator, "option_import_instanced", True):
+                if getattr(self.importPure3DFileOperator, "option_import_entities", True):
                     self.importInstancedChunk(chunk)
 
             elif isinstance(chunk, DynaPhysChunk):
-                if getattr(self.importPure3DFileOperator, "option_import_instanced", True):
+                if getattr(self.importPure3DFileOperator, "option_import_entities", True):
                     self.importInstancedChunk(chunk)
 
             elif isinstance(chunk, ScenegraphChunk):
@@ -373,9 +358,8 @@ class ImportedPure3DFile():
         
         fileCollection.children.link(self.fenceCollection)
         fileCollection.children.link(self.pathCollection)
-        fileCollection.children.link(self.staticEntityCollection)
-        fileCollection.children.link(self.collisionCollection)
-        fileCollection.children.link(self.instancedCollection)
+        fileCollection.children.link(self.terrainCollection)
+        fileCollection.children.link(self.entityCollection)
         fileCollection.children.link(self.scenegraphCollection)
         fileCollection.children.link(self.compositeDrawableCollection)
         
@@ -396,10 +380,6 @@ class ImportedPure3DFile():
                 material.shaderProperties.terrainType = str(terrainType)
 
     def importInstancedChunk(self, chunk: Chunk):
-        
-        instancedCollection = bpy.data.collections.new(chunk.name) # Not to be confused with "Instance Collection" or self.instancedCollection
-        self.instancedCollection.children.link(instancedCollection)
-
         instanceList: InstanceListChunk = chunk.getFirstChildOfType(InstanceListChunk)
 
         meshes = {}
@@ -409,14 +389,11 @@ class ImportedPure3DFile():
             meshes[meshChunk.name] = MeshLib.createMesh(meshChunk)
 
         for collisionObjectChunk in chunk.getChildrenOfType(CollisionObjectChunk):
-            collisionCollection = bpy.data.collections.new("Collisions")
-            self.collectionsToHide.append(collisionCollection)
-            instancedCollection.children.link(collisionCollection)
-
             collisions[collisionObjectChunk.name] = CollisionLib.createCollision(collisionObjectChunk,chunk.getFirstChildOfType(CollisionEffectChunk),chunk.getFirstChildOfType(PhysicsObjectChunk))
             for collisionObject in collisions[collisionObjectChunk.name]:
                 collisionObject: bpy.types.Object
-                collisionCollection.objects.link(collisionObject)
+                collisionObject.hide_viewport = True
+                self.entityCollection.objects.link(collisionObject)
 
         scenegraph = instanceList.getFirstChildOfType(ScenegraphChunk)
         root = scenegraph.getFirstChildOfType(OldScenegraphRootChunk)
@@ -444,9 +421,9 @@ class ImportedPure3DFile():
             obj.rotation_euler = rotation_euler
             obj.scale = scale
 
-            instancedCollection.objects.link(obj)
+            self.entityCollection.objects.link(obj)
         
-        self.numberOfInstancedImported += 1
+        self.numberOfEntitiesImported += 1
 
     def importFenceChunk(self, chunkIndex : int, chunk : FenceChunk) -> None:
         for childChunkIndex, childChunk in enumerate(chunk.children):
@@ -588,9 +565,9 @@ class ImportedPure3DFile():
                 meshObject = bpy.data.objects.new(chunk.name, mesh)
                 meshObject.visible_shadow = bool(renderStatusChunk.castShadow)
 
-                self.staticEntityCollection.objects.link(meshObject)
+                self.terrainCollection.objects.link(meshObject)
 
-                self.numberOfStaticEntityChunksImported += 1
+                self.numberOfEntitiesImported += 1
 
     def importTextureChunk(self, chunk : TextureChunk) -> bpy.types.Image | None:
         for i in bpy.data.images:
@@ -618,7 +595,7 @@ class ImportedPure3DFile():
             if isinstance(childChunk,CollisionObjectChunk):
                 objects = CollisionLib.createCollision(childChunk,chunk.getFirstChildOfType(CollisionEffectChunk))
                 for i in objects:
-                    self.collisionCollection.objects.link(i)
+                    self.terrainCollection.objects.link(i)
                     self.numberOfCollisionsImported += 1
 
     def importScenegraphChunk(self, chunk: ScenegraphChunk):
