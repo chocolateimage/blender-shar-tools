@@ -384,7 +384,7 @@ class ExportedPure3DFile():
                                 hasAlpha = 1
 
                         chunk = MeshLib.meshToChunk(mesh, obj)
-                        if "track" in obj.name or "polySurfaceShape" in obj.name:
+                        if "track" in obj.name or "polySurfaceShape" in obj.name or "extraShape" in obj.name:
                             self.addAsInterset(mesh)
 
                         self.chunks.append(StaticEntityChunk(
