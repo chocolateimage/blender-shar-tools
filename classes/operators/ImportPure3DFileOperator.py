@@ -431,9 +431,10 @@ class ImportedPure3DFile():
             objects.append(obj)
 
         if len(objects) > 0:
-            for collisionObject in collisions[collisionObjectChunk.name]:
-                collisionObject: bpy.types.Object
-                collisionObject.parent = objects[0]
+            for collisionGroup in collisions.values():
+                for collisionObject in collisionGroup:
+                    collisionObject: bpy.types.Object
+                    collisionObject.parent = objects[0]
 
         self.numberOfEntitiesImported += 1
 
