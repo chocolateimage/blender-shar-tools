@@ -110,14 +110,16 @@ class RawExportPure3DFileOperator(bpy.types.Operator):
     bl_label = "Export Pure3D File"
 
     filepath: bpy.props.StringProperty(subtype="FILE_PATH", name="File Path")
+    collection: bpy.props.StringProperty(name="Collection")
 
     def draw(self, context):
         pass # DO NOT REMOVE else duplicate filepath fields will be shown
 
     def execute(self, context):
-        print("Exporting to " + self.filepath + " from collection " + context.collection.name)
+        collection = bpy.data.collections[self.collection]
+        print("Exporting to " + self.filepath + " from collection " + collection.name)
         
-        exportedPure3DFile = ExportedPure3DFile(self, self.filepath, context.collection)
+        exportedPure3DFile = ExportedPure3DFile(self, self.filepath, collection)
 
         exportedPure3DFile.export()
 
