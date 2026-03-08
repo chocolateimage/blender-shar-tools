@@ -232,6 +232,7 @@ class ImportedPure3DFile():
 
         self.stickyImages = []
         self.collectionsToHide = []
+        self.objectsToHide = []
         self.skeletons: dict[str, bpy.types.Object] = {}
         self.skeletonJoints: dict[str, list[bpy.types.Object]] = {}
 
@@ -366,6 +367,9 @@ class ImportedPure3DFile():
         for collection in self.collectionsToHide:
             utils.get_layer_collection_from_collection(collection).hide_viewport = True
 
+        for object in self.objectsToHide:
+            object.hide_set(True)
+
     def importGameAttrChunk(self, chunk: GameAttrChunk):
         for parameter in chunk.children:
             if parameter.parameter == "TerrainType":
@@ -392,13 +396,15 @@ class ImportedPure3DFile():
             collisions[collisionObjectChunk.name] = CollisionLib.createCollision(collisionObjectChunk,chunk.getFirstChildOfType(CollisionEffectChunk),chunk.getFirstChildOfType(PhysicsObjectChunk))
             for collisionObject in collisions[collisionObjectChunk.name]:
                 collisionObject: bpy.types.Object
-                collisionObject.hide_viewport = True
+                self.objectsToHide.append(collisionObject)
                 self.entityCollection.objects.link(collisionObject)
 
         scenegraph = instanceList.getFirstChildOfType(ScenegraphChunk)
         root = scenegraph.getFirstChildOfType(OldScenegraphRootChunk)
         rootBranch = root.getFirstChildOfType(OldScenegraphBranchChunk)
         rootTransform = rootBranch.getFirstChildOfType(OldScenegraphTransformChunk)
+
+        objects = []
 
         for transform in rootTransform.getChildrenOfType(OldScenegraphTransformChunk):
             transform: OldScenegraphTransformChunk
@@ -422,7 +428,13 @@ class ImportedPure3DFile():
             obj.scale = scale
 
             self.entityCollection.objects.link(obj)
-        
+            objects.append(obj)
+
+        if len(objects) > 0:
+            for collisionObject in collisions[collisionObjectChunk.name]:
+                collisionObject: bpy.types.Object
+                collisionObject.parent = objects[0]
+
         self.numberOfEntitiesImported += 1
 
     def importFenceChunk(self, chunkIndex : int, chunk : FenceChunk) -> None:

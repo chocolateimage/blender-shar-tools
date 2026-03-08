@@ -405,14 +405,41 @@ class ExportedPure3DFile():
                         )
                     )
 
-            elif collectionBasename == "Instanced":
-                for instancedCollection in childCollection.children:
+            elif collectionBasename == "Entities":
+                instances = {}
+                for object in childCollection.objects:
+                    name = utils.get_basename(object.name)
+                    is_collision = False
+                    is_mesh = False
+                    if name.endswith("_COL"):
+                        name = name.removesuffix("_COL")
+                        is_collision = True
+                    elif object.data is not None:
+                        name = utils.get_basename(object.data.name)
+                        is_mesh = True
+                    else:
+                        continue
+
+                    if name not in instances:
+                        instances[name] = {
+                            "collisions": [],
+                            "objects": [],
+                        }
+
+                    if is_collision:
+                        instances[name]["collisions"].append(object)
+                    elif is_mesh:
+                        instances[name]["objects"].append(object)
+
+                for name, instance in instances.items():
+                    print("INSTANCE",name)
                     alreadyExportedMeshes = {}
                     children = []
                     has_collisions = False
                     has_physics = False
 
-                    for obj in instancedCollection.objects:
+                    for obj in instance["objects"]:
+                        obj: bpy.types.Object
                         mesh = obj.data
                         meshName = utils.get_basename(mesh.name)
                         if meshName in alreadyExportedMeshes:
@@ -425,29 +452,17 @@ class ExportedPure3DFile():
 
                         meshChunk = MeshLib.meshToChunk(mesh,obj)
                         children.append(meshChunk)
-                    
 
-                    for instancedCollectionChild in instancedCollection.children:
-                        instancedCollectionChildBasename = utils.get_basename(instancedCollectionChild.name)
-                        if instancedCollectionChildBasename == "Collisions":
-                            collisionGroups = {}
-                            for obj in instancedCollectionChild.objects:
-                                baseName = utils.get_basename(obj.name)
-                                if baseName not in collisionGroups:
-                                    collisionGroups[baseName] = []
-                                collisionGroups[baseName].append(obj)
-                            
-                            for groupName, group in collisionGroups.items():
-                                childrenToAdd = CollisionLib.collisionsToChunks(groupName, group)
-                                children.extend(childrenToAdd)
-                                has_collisions = True
-                                for c in childrenToAdd:
-                                    if isinstance(c, PhysicsObjectChunk):
-                                        has_physics = True
-                                
+                    if len(instance["collisions"]) > 0:
+                        childrenToAdd = CollisionLib.collisionsToChunks(groupName, instance["collisions"])
+                        children.extend(childrenToAdd)
+                        has_collisions = True
+                        for c in childrenToAdd:
+                            if isinstance(c, PhysicsObjectChunk):
+                                has_physics = True
 
                     instanceList = InstanceListChunk()
-                    instanceList.name = utils.get_basename(instancedCollection.name)
+                    instanceList.name = name
                     for meshName in alreadyExportedMeshes:
                         scenegraph = ScenegraphChunk(name=meshName)
                         root = OldScenegraphRootChunk()
@@ -494,7 +509,7 @@ class ExportedPure3DFile():
                     self.chunks.append(
                         chunkType(
                             children=children,
-                            name=instancedCollection.name,
+                            name=name,
                             version=0,
                             hasAlpha=0
                         )
